@@ -1,0 +1,14 @@
+{
+  "_output_dir": "/media/jjn/jjn_raid/GitHub",
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Jeff Nirschl",
+  "copyright_year": "2022",
+  "development_status": "Development Status :: 1 - Planning",
+  "email": "jnirschl@stanford.edu",
+  "friendly_name": "DeITy",
+  "github_user": "jnirschl",
+  "license": "MIT",
+  "package_name": "deity",
+  "project_name": "deity",
+  "version": "0.1.0"
+}
