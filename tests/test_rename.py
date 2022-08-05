@@ -1,4 +1,5 @@
 import pytest
+
 from deity import rename
 
 
@@ -11,7 +12,7 @@ def filepath(tmpdir_factory):
 
 
 def test_rename(filepath):
-    new_filename = rename(filepath)
+    new_filename = rename(filepath, dry_run=True)
     assert new_filename != filepath, AssertionError(
         f"New filename {filepath }is identical to input filename"
     )

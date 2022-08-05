@@ -3,7 +3,7 @@ from pathlib import Path
 from deity import encode_filename
 
 
-def rename(filepath, output_dir=None):
+def rename(filepath, dry_run=False, output_dir=None):
     filepath = Path(filepath).resolve()
 
     new_filename, _, _ = encode_filename(filepath)
@@ -14,3 +14,5 @@ def rename(filepath, output_dir=None):
     else:
         new_filepath = filepath.parents[0].joinpath(new_filename)
         filepath.rename(new_filepath)
+
+    return new_filepath

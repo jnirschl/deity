@@ -1,10 +1,12 @@
-import re
-
-import pytest
 import hashlib
+import re
 from pathlib import Path
 
-from src.deity import encode, encode_filename
+import pytest
+
+from src.deity import encode
+from src.deity import encode_filename
+
 
 test_cases = [  # test_success, test_fail
     ("SHA-00-54321", 54321),
@@ -35,18 +37,14 @@ class TestEncode:
             encode_fail, _ = encode(test_fail)
 
 
-@pytest.mark.parametrize(
-    "orig_filename", [Path(elem[0]) for elem in test_cases], scope="class"
-)
+@pytest.mark.parametrize("fname", [Path(elem[0]) for elem in test_cases], scope="class")
 class TestEncodeFilename:
-    def test_encoded_name(self, orig_filename, regex_identifier):
-        new_filename, full_hash, short_hash = encode_filename(orig_filename)
-        assert new_filename != orig_filename  # new filename should be different
-        assert not regex_identifier.search(new_filename)  # identifier should be absent
+    def test_encoded_name(self, fname, regex_identifier):
+        new_fname, full_hash, short_hash = encode_filename(fname)
+        assert new_fname != fname  # new filename should be different
+        assert not regex_identifier.search(new_fname)  # identifier should be absent
 
-        orig_name_reverse = orig_filename.name[::-1]
-        new_filename, full_hash, short_hash = encode_filename(orig_name_reverse)
-        assert (
-            new_filename.name == orig_filename.name[::-1]
-        )  # new filename unchanged from orig
-        assert not regex_identifier.search(new_filename.name)
+        orig_name_reverse = fname.name[::-1]
+        new_fname, full_hash, short_hash = encode_filename(orig_name_reverse)
+        assert new_fname.name == fname.name[::-1]  # new filename unchanged from orig
+        assert not regex_identifier.search(new_fname.name)
