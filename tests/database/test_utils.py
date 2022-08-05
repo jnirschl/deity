@@ -36,8 +36,8 @@ def create_table_sql():
 @pytest.fixture()
 def records_sql():
     return [
-        ("1", "12345", "full_hash1", "short_hash1"),
-        ("2", "54321", "full_hash2", "short_hash2"),
+        (1, 12345, "full_hash1", "short_hash1"),
+        (2, 54321, "full_hash2", "short_hash2"),
     ]
 
 
@@ -56,16 +56,29 @@ class TestDatabase:
     def test_connect(self, db_file):
         # db_file = str(db_file).replace("test", "test")
         conn = create_connection(db_file)
-        assert conn is not None, AssertionError(
-            f"Unable to connect to {db_file}"
-        )
-        conn.close()
+        assert conn is not None, AssertionError(f"Unable to connect to {db_file}")
 
     def test_create_insert(
         self, conn, create_table_sql, insert_record_sql, records_sql
     ):
         """test creating a table and inserting a record"""
         execute_query(conn, create_table_sql)
-        execute_query(conn, insert_record_sql, records_sql)
+        execute_query(conn, insert_record_sql, records=records_sql)
 
-        conn.close()
+    def test_select(self, conn, create_table_sql, insert_record_sql, records_sql):
+        """test creating a table and selecting a record"""
+        execute_query(conn, create_table_sql)
+        execute_query(conn, insert_record_sql, records=records_sql)
+
+        result = execute_query(conn, "SELECT * FROM subjects")
+        assert result == records_sql, AssertionError(f"{result} != {records_sql}")
+
+    def test_create_cursor(self, conn):
+        """test creating a cursor"""
+        cur = create_cursor(conn)
+        assert cur is not None, AssertionError(f"{cur} is None")
+
+    def test_close(self, conn):
+        """test closing a connection"""
+        conn = close_connection(conn)
+        assert conn is None, AssertionError(f"{conn} is not None")
