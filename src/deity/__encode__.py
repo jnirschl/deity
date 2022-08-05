@@ -18,7 +18,7 @@ def encode(text, num_chars: int = 16):
 
 def encode_filename(
     filepath: str,
-    pattern: str = "[SL][HP][SDFNA]-\d{2}-\d{5}",
+    pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
     ignore_case=re.IGNORECASE,
 ):
     """ """

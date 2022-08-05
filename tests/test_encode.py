@@ -17,7 +17,7 @@ test_cases = [  # test_success, test_fail
 
 @pytest.fixture()
 def regex_identifier():
-    return re.compile("[SL][HP][SDFNA]-\d{2}-\d{5}", re.IGNORECASE)
+    return re.compile("[SL][HP][SDFNA]-\\d{2}-\\d{5}", re.IGNORECASE)
 
 
 @pytest.mark.parametrize("test_success, test_fail", test_cases, scope="class")
