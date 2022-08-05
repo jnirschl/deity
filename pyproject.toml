@@ -78,9 +78,10 @@ show_error_codes = true
 show_error_context = true
 
 [tool.pytest.ini_options]
+addopts = "-ra -q"
 markers = [
-    "smoke: marks tests as smoke (deselect with '-m \"not slow\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "debug: marks tests as actively under debugging (deselect with '-m \"not debug\"')",
 ]
 
 [build-system]

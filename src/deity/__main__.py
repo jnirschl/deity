@@ -24,7 +24,6 @@ import deity
 def main(input_dir, output_dir=None, suffix="jpg,png", dry_run=False):
     """Rename files in a directory."""
 
-    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     logger.info(f"Input directory: {input_dir}")
     if dry_run:
