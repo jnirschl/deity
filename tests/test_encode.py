@@ -29,9 +29,7 @@ class TestEncode:
 
     def test_hash(self, test_success, test_fail):
         encode_success, _ = encode(test_success)
-        hash_success = hashlib.sha256(
-            test_success.strip().encode()
-        ).hexdigest()
+        hash_success = hashlib.sha256(test_success.strip().encode()).hexdigest()
         assert encode_success == hash_success
 
         # test fail
@@ -39,20 +37,14 @@ class TestEncode:
             encode_fail, _ = encode(test_fail)
 
 
-@pytest.mark.parametrize(
-    "fname", [Path(elem[0]) for elem in test_cases], scope="class"
-)
+@pytest.mark.parametrize("fname", [Path(elem[0]) for elem in test_cases], scope="class")
 class TestEncodeFilename:
     def test_encoded_name(self, fname, regex_identifier):
         new_fname, full_hash, short_hash = encode_filename(fname)
         assert new_fname != fname  # new filename should be different
-        assert not regex_identifier.search(
-            new_fname
-        )  # identifier should be absent
+        assert not regex_identifier.search(new_fname)  # identifier should be absent
 
         orig_name_reverse = fname.name[::-1]
         new_fname, full_hash, short_hash = encode_filename(orig_name_reverse)
-        assert (
-            new_fname.name == fname.name[::-1]
-        )  # new filename unchanged from orig
+        assert new_fname.name == fname.name[::-1]  # new filename unchanged from orig
         assert not regex_identifier.search(new_fname.name)

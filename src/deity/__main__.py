@@ -36,9 +36,7 @@ def main(input_dir, output_dir=None, suffix="jpg,png", dry_run=False):
     # set vars
     input_dir = Path(input_dir).resolve()
     output_dir = (
-        Path(output_dir).resolve().parent
-        if output_dir
-        else input_dir.parents[0]
+        Path(output_dir).resolve().parent if output_dir else input_dir.parents[0]
     )
 
     file_list = []
