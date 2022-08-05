@@ -1,4 +1,5 @@
 """DeITy."""
+__version__ = "0.0.1"
 __all__ = ["encode", "encode_filename", "main", "rename"]
 
 from .__encode__ import encode
