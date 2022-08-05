@@ -56,7 +56,9 @@ class TestDatabase:
     def test_connect(self, db_file):
         # db_file = str(db_file).replace("test", "test")
         conn = create_connection(db_file)
-        assert conn is not None, AssertionError(f"Unable to connect to {db_file}")
+        assert conn is not None, AssertionError(
+            f"Unable to connect to {db_file}"
+        )
         conn.close()
 
     def test_create_insert(

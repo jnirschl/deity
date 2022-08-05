@@ -13,10 +13,14 @@ import deity
 
 @click.command()
 @click.argument(
-    "input_dir", type=click.Path(exists=True),
+    "input_dir",
+    type=click.Path(exists=True),
 )
 @click.option(
-    "--output-dir", default=None, type=click.Path(exists=True), help="Output directory"
+    "--output-dir",
+    default=None,
+    type=click.Path(exists=True),
+    help="Output directory",
 )
 @click.option("--suffix", default="jpg,png", type=str, help="File extensions")
 @click.option("--dry-run", is_flag=True, help="Dry run")
@@ -32,7 +36,9 @@ def main(input_dir, output_dir=None, suffix="jpg,png", dry_run=False):
     # set vars
     input_dir = Path(input_dir).resolve()
     output_dir = (
-        Path(output_dir).resolve().parent if output_dir else input_dir.parents[0]
+        Path(output_dir).resolve().parent
+        if output_dir
+        else input_dir.parents[0]
     )
 
     file_list = []

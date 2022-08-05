@@ -6,7 +6,9 @@ from pathlib import Path
 def encode(text, num_chars: int = 16):
     """accept identifier as string and return SHA-256 hash of str identifier"""
     if type(text) is not str:
-        raise TypeError(f"Requires 'str' input, but received {text}({type(text)})")
+        raise TypeError(
+            f"Requires 'str' input, but received {text}({type(text)})"
+        )
 
     # strip end chars and encode
     text = text.strip().encode()

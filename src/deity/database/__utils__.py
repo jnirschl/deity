@@ -7,8 +7,9 @@ from sqlite3 import Error
 log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
+
 def create_connection(db_file, verbose=False):
-    """ wrapper for sqlite3.connect() """
+    """wrapper for sqlite3.connect()"""
     conn = None
 
     logger = logging.getLogger(__name__)
@@ -28,11 +29,12 @@ def create_connection(db_file, verbose=False):
 
 
 def create_cursor(conn):
-    """ create a cursor for the connection """
+    """create a cursor for the connection"""
     return conn.cursor()
 
+
 def execute_query(conn, query, records=None, verbose=False):
-    """ execute a query """
+    """execute a query"""
     cur = conn.cursor()
     try:
         if records:
@@ -48,6 +50,6 @@ def execute_query(conn, query, records=None, verbose=False):
 
 
 def close_connection(conn):
-    """ close the connection """
+    """close the connection"""
     conn.close()
     return None

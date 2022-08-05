@@ -60,22 +60,24 @@ class TestMain:
         result = runner.invoke(main, [tmp_dir, "--dry-run"])
         if result.exit_code == 0:
             for elem in test_files:
-                assert Path(tmp_dir).joinpath(elem).exists(), FileNotFoundError(
-                    f"{elem} not found"
-                )
+                assert (
+                    Path(tmp_dir).joinpath(elem).exists()
+                ), FileNotFoundError(f"{elem} not found")
         else:
             traceback.print_tb(result.exc_info[2])
 
-    def test_success_rename_all(self, runner: CliRunner, tmp_dir, test_files, suffix):
+    def test_success_rename_all(
+        self, runner: CliRunner, tmp_dir, test_files, suffix
+    ):
         """It should exit with a status code of zero."""
 
         result = runner.invoke(main, [tmp_dir, "--suffix", ",".join(suffix)])
         if result.exit_code == 0:
             for elem in test_files:
                 new_name = encode_filename(elem)[0]
-                assert Path(tmp_dir).joinpath(new_name).exists(), FileNotFoundError(
-                    f"{new_name} was expected but not found"
-                )
+                assert (
+                    Path(tmp_dir).joinpath(new_name).exists()
+                ), FileNotFoundError(f"{new_name} was expected but not found")
         else:
             traceback.print_tb(result.exc_info[2])
 
