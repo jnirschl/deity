@@ -5,7 +5,7 @@ __ALL__ = [
     "close_connection",
 ]
 
-from .__utils__ import close_connection
-from .__utils__ import create_connection
-from .__utils__ import create_cursor
-from .__utils__ import execute_query
+from .utils import close_connection
+from .utils import create_connection
+from .utils import create_cursor
+from .utils import execute_query

@@ -4,47 +4,72 @@ from pathlib import Path
 
 import pytest
 
-from src.deity import encode
-from src.deity import encode_filename
+from src import deity
 
 
-test_cases = [  # test_success, test_fail
-    ("SHA-00-54321", 54321),
-    ("LPS-00-54321", None),
-    ("SHS-00-54321", b"CM-00-54321"),
-]
-
-
-@pytest.fixture()
-def regex_identifier():
-    return re.compile("[SL][HP][SDFNA]-\\d{2}-\\d{5}", re.IGNORECASE)
-
-
-@pytest.mark.parametrize("test_success, test_fail", test_cases, scope="class")
 class TestEncode:
-    def test_input(self, test_success, test_fail):
-        assert encode(test_success)
-        with pytest.raises(TypeError):
-            encode(test_fail)
+    """class for testing encode module functions"""
 
-    def test_hash(self, test_success, test_fail):
-        encode_success, _ = encode(test_success)
-        hash_success = hashlib.sha256(test_success.strip().encode()).hexdigest()
-        assert encode_success == hash_success
+    def test_input(self, test_input):
+        """test input types"""
+        for filename, result, error in test_input:
+            if result:
+                assert deity.encode(filename)
+            else:
+                with pytest.raises(error):
+                    deity.encode(filename)
 
-        # test fail
-        with pytest.raises(TypeError):
-            encode_fail, _ = encode(test_fail)
+    def test_hash(self, test_input):
+        for filename, result, error in test_input:
+            if result:
+                # test success
+                encode_hash, _ = deity.encode(filename)
+                hashlib_hash = hashlib.sha256(filename.strip().encode()).hexdigest()
+                assert encode_hash == hashlib_hash
+            else:
+                # test fail
+                with pytest.raises(TypeError):
+                    encode_fail, _ = deity.encode(input)
 
 
-@pytest.mark.parametrize("fname", [Path(elem[0]) for elem in test_cases], scope="class")
 class TestEncodeFilename:
-    def test_encoded_name(self, fname, regex_identifier):
-        new_fname, full_hash, short_hash = encode_filename(fname)
-        assert new_fname != fname  # new filename should be different
-        assert not regex_identifier.search(new_fname)  # identifier should be absent
+    def test_input(self, test_input):
+        """test input types"""
+        for filename, result, error in test_input:
+            if result:
+                assert deity.encode_filename(filename)
+            else:
+                with pytest.raises(error):
+                    deity.encode_filename(filename)
 
-        orig_name_reverse = fname.name[::-1]
-        new_fname, full_hash, short_hash = encode_filename(orig_name_reverse)
-        assert new_fname.name == fname.name[::-1]  # new filename unchanged from orig
-        assert not regex_identifier.search(new_fname.name)
+    def test_hash(self, test_input):
+        for filename, result, error in test_input:
+            if result:
+                # test success
+                encode_filename, full_hash, _ = deity.encode_filename(filename)
+                hashlib_hash = hashlib.sha256(filename.strip().encode()).hexdigest()
+                assert full_hash == hashlib_hash
+            else:
+                # test fail
+                with pytest.raises(TypeError):
+                    encode_fail, _ = deity.encode_filename(filename)
+
+    def test_filename_success(self, test_files, regex_id):
+        for fname in test_files:
+            new_fname, _, _ = deity.encode_filename(fname)
+
+            assert new_fname != fname, f"{fname} should be different from {new_fname}"
+            assert not regex_id.search(new_fname), f"{new_fname} contains identifier"
+
+    # @pytest.mark.xfail(reason="not implemented")
+    def test_filname_fail(self, test_files, regex_id):
+        for fname in test_files:
+            fname = Path(fname)
+            reverse_fname = fname.name[::-1]
+            new_rev_fname, _, _ = deity.encode_filename(reverse_fname)
+            assert new_rev_fname.name[::-1] == fname.name, AssertionError(
+                f"{new_rev_fname} != {fname}"
+            )
+            assert not regex_id.search(
+                new_rev_fname.name
+            ), f"{new_rev_fname} should contain identifier"

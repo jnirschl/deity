@@ -21,7 +21,7 @@ def encode_filename(
     pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
     ignore_case=re.IGNORECASE,
 ):
-    """ """
+    """accept filepath and return new filepath with encoded identifier"""
     filepath = Path(filepath).resolve()
 
     # compile regex to replace identifier

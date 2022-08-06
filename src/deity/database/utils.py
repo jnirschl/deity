@@ -35,7 +35,8 @@ def create_cursor(conn):
 
 def execute_query(conn, query, records=None, verbose=False):
     """execute a query"""
-    cur = conn.cursor()
+    cur = create_cursor(conn)
+    results = None
     try:
         if records:
             cur.executemany(query, records)
@@ -43,10 +44,13 @@ def execute_query(conn, query, records=None, verbose=False):
             cur.execute(query)
 
         conn.commit()
+        results = cur.fetchall()
     except Error as e:
-        logging.error(e)
+        logging.error(f"Error executing query: {e}")
+    finally:
+        cur.close()
 
-    return cur.fetchall()
+    return results
 
 
 def close_connection(conn):

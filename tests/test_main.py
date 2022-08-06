@@ -13,30 +13,6 @@ from deity import main
 
 
 @pytest.fixture()
-def prefix():
-    return ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
-
-
-@pytest.fixture()
-def suffix():
-    return ["jpg", "png", "tif", "tiff"]
-
-
-@pytest.fixture()
-def test_files(prefix, suffix, num_test_cases=10):
-    """Fixture to generate test files"""
-    return [
-        (
-            f"{random.choice(prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}_"
-            f"part-{random.choice(string.ascii_uppercase)}_diagnosis_"
-            f"{np.random.randint(40):02d}x_{np.random.randint(999):03d}"
-            f".{random.choice(suffix)}"
-        )
-        for elem in range(num_test_cases)
-    ]
-
-
-@pytest.fixture()
 def runner() -> CliRunner:
     """Fixture for invoking command-line interfaces."""
     return CliRunner()

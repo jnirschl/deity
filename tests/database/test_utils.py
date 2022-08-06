@@ -9,69 +9,83 @@ from deity.database import execute_query
 
 
 @pytest.fixture()
-def db_file(tmp_path_factory):
+def conn(tmp_path_factory):
     temp = tmp_path_factory.mktemp("data")
     db_file = temp.joinpath("test.db")
     db_file.touch()
-    return db_file
-
-
-@pytest.fixture()
-def conn(db_file):
     return create_connection(db_file)
 
 
 @pytest.fixture()
-def create_table_sql():
-    return """
-    CREATE TABLE IF NOT EXISTS subjects (
-        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-        mrn INTEGER NOT NULL UNIQUE,
-        mrn_full_hash TEXT NOT NULL UNIQUE,
-        mrn_short_hash TEXT NOT NULL UNIQUE
-        );
-    """
+def table():
+    return ["subjects", "specimens"]
 
 
 @pytest.fixture()
-def records_sql():
+def columns():
+    return ["mrn", "accession"]
+
+
+@pytest.fixture()
+def create_table_sql(table, columns):
     return [
-        (1, 12345, "full_hash1", "short_hash1"),
-        (2, 54321, "full_hash2", "short_hash2"),
+        f"CREATE TABLE IF NOT EXISTS {elem} ("
+        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+        f"{col} INTEGER NOT NULL UNIQUE,"
+        f"{col}full_hash TEXT NOT NULL UNIQUE,"
+        f"{col}_short_hash TEXT NOT NULL UNIQUE"
+        ");"
+        for elem, col in zip(table, columns)
     ]
 
 
 @pytest.fixture()
-def insert_record_sql():
-    return """
-    INSERT INTO subjects
-    VALUES (?, ?, ?, ?);
-    """
+def insert_records(table):
+    return [f"INSERT INTO {elem} VALUES (?, ?, ?, ?);" for elem in table]
+
+
+@pytest.fixture()
+def records():
+    return {
+        "subjects": [
+            (1, 12345, "full_hash1", "short_hash1"),
+            (2, 54321, "full_hash2", "short_hash2"),
+        ],
+        "specimens": [
+            (1, "SHS-00-12345", "full_hash1", "short_hash1"),
+            (2, "SHS-99-54321", "full_hash2", "short_hash2"),
+        ],
+    }
 
 
 @pytest.mark.debug
 class TestDatabase:
     """class for testing database connection"""
 
-    def test_connect(self, db_file):
-        # db_file = str(db_file).replace("test", "test")
-        conn = create_connection(db_file)
-        assert conn is not None, AssertionError(f"Unable to connect to {db_file}")
-
-    def test_create_insert(
-        self, conn, create_table_sql, insert_record_sql, records_sql
-    ):
+    def test_create_insert(self, conn, create_table_sql, insert_records, records):
         """test creating a table and inserting a record"""
-        execute_query(conn, create_table_sql)
-        execute_query(conn, insert_record_sql, records=records_sql)
+        for table, col in zip(records.keys(), create_table_sql):
+            execute_query(conn, col)
 
-    def test_select(self, conn, create_table_sql, insert_record_sql, records_sql):
+        for table, query in zip(records.keys(), insert_records):
+            execute_query(conn, query, records[table])
+
+    def test_select(self, conn, create_table_sql, insert_records, records):
         """test creating a table and selecting a record"""
-        execute_query(conn, create_table_sql)
-        execute_query(conn, insert_record_sql, records=records_sql)
+        # create the table
+        for table, col in zip(records.keys(), create_table_sql):
+            execute_query(conn, col)
 
-        result = execute_query(conn, "SELECT * FROM subjects")
-        assert result == records_sql, AssertionError(f"{result} != {records_sql}")
+        # insert records
+        for table, query in zip(records.keys(), insert_records):
+            execute_query(conn, query, records=records[table])
+
+        # select records
+        for table in records.keys():
+            result = execute_query(conn, f"SELECT * FROM {table}")
+            assert result == records[table], AssertionError(
+                f"{result} != {records[table]}"
+            )
 
     def test_create_cursor(self, conn):
         """test creating a cursor"""
