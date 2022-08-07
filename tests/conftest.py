@@ -1,3 +1,4 @@
+"""Configure shared fixtures for tests."""
 import random
 import re
 import string
@@ -8,7 +9,7 @@ import pytest
 
 @pytest.fixture()
 def regex_id():
-    """return regex for identifying identifiers"""
+    """Returns regex for identifier."""
     return re.compile("[SL][HP][SDFNA]-\\d{2}-\\d{5}", re.IGNORECASE)
 
 
@@ -20,7 +21,7 @@ def temp_files(tmpdir_factories):
 
 @pytest.fixture()
 def prefix():
-    """Fixture for creating temporary file prefixes"""
+    """Fixture for creating temporary file prefixes."""
     return ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
 
 
@@ -47,7 +48,9 @@ def test_files(prefix, suffix, num_test_cases=10):
 @pytest.fixture()
 def test_input():
     """Fixture for creating test cases.
-    Format (input, result, error)"""
+
+    Returns: tuple of (input, result, error)
+    """
     return [
         ("SHA-00-54321", True, None),
         ("LPS-00-54321", True, None),

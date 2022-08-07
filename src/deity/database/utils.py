@@ -1,3 +1,4 @@
+"""Utilities for database creation and management."""
 import logging
 import sqlite3
 from pathlib import Path
@@ -9,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 
 def create_connection(db_file, verbose=False):
-    """wrapper for sqlite3.connect()"""
+    """Wrapper for sqlite3.connect()."""
     conn = None
 
     logger = logging.getLogger(__name__)
@@ -29,12 +30,12 @@ def create_connection(db_file, verbose=False):
 
 
 def create_cursor(conn):
-    """create a cursor for the connection"""
+    """Create a cursor for the connection."""
     return conn.cursor()
 
 
 def execute_query(conn, query, records=None, verbose=False):
-    """execute a query"""
+    """Execute a query."""
     cur = create_cursor(conn)
     results = None
     try:
@@ -54,6 +55,6 @@ def execute_query(conn, query, records=None, verbose=False):
 
 
 def close_connection(conn):
-    """close the connection"""
+    """Close the connection."""
     conn.close()
     return None

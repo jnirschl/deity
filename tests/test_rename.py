@@ -1,3 +1,4 @@
+"""Tests for src/deity/rename.py."""
 import pytest
 
 from deity import rename
@@ -5,6 +6,7 @@ from deity import rename
 
 @pytest.fixture()
 def filepath(tmpdir_factory):
+    """Fixture for a temporary file."""
     test_filename = "SHS-00-012345_part-A_cancer_40x_001.jpg"
     fn = tmpdir_factory.mktemp("data").join(test_filename)
     fn.write("")
@@ -12,6 +14,7 @@ def filepath(tmpdir_factory):
 
 
 def test_rename(filepath):
+    """Test that new filename is different from old filename."""
     new_filename = rename(filepath, dry_run=True)
     assert new_filename != filepath, AssertionError(
         f"New filename {filepath }is identical to input filename"

@@ -1,3 +1,4 @@
+"""Tests for testing database.utils."""
 import sqlite3
 
 import pytest
@@ -10,21 +11,25 @@ from deity.database import execute_query
 
 @pytest.fixture()
 def conn(tmp_path_factory):
+    """Fixture for a temporary in-memory database connection."""
     return create_connection(":memory:")
 
 
 @pytest.fixture()
 def table():
+    """Fixture for table names in the database."""
     return ["subjects", "specimens"]
 
 
 @pytest.fixture()
 def columns():
+    """Fixture for column names in the database."""
     return ["mrn", "accession"]
 
 
 @pytest.fixture()
 def create_table_sql(table, columns):
+    """Fixture for the SQL statement to create a table."""
     return [
         f"CREATE TABLE IF NOT EXISTS {elem} ("
         "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
@@ -38,11 +43,13 @@ def create_table_sql(table, columns):
 
 @pytest.fixture()
 def insert_records(table):
+    """Fixture for the SQL statement to insert records into a table."""
     return [f"INSERT INTO {elem} VALUES (?, ?, ?, ?);" for elem in table]
 
 
 @pytest.fixture()
 def records():
+    """Fixture for the records to insert into the database."""
     return {
         "subjects": [
             (1, 12345, "full_hash1", "short_hash1"),
@@ -57,11 +64,11 @@ def records():
 
 @pytest.mark.debug
 class TestDatabase:
-    """class for testing database connection"""
+    """Class for testing database connection and management."""
 
     def test_insert(self, conn, create_table_sql, insert_records, records):
-        """test creating a table and inserting a record"""
-        for table, col in zip(records.keys(), create_table_sql):
+        """Test creating a table and inserting a record."""
+        for col in create_table_sql:
             execute_query(conn, col)
 
         for table, query in zip(records.keys(), insert_records):
@@ -69,10 +76,9 @@ class TestDatabase:
 
         close_connection(conn)
 
-    @pytest.mark.xfail(reason="Duplicate key")
     def test_insert_fail(self, conn, create_table_sql, insert_records, records):
-        """test creating a table and inserting a record"""
-        for table, col in zip(records.keys(), create_table_sql):
+        """Test creating a table and inserting a record."""
+        for col in create_table_sql:
             execute_query(conn, col)
 
         for table, query in zip(records.keys(), insert_records):
@@ -83,9 +89,9 @@ class TestDatabase:
         close_connection(conn)
 
     def test_select(self, conn, create_table_sql, insert_records, records):
-        """test creating a table and selecting a record"""
+        """Test creating a table and selecting a record."""
         # create the table
-        for table, col in zip(records.keys(), create_table_sql):
+        for col in create_table_sql:
             execute_query(conn, col)
 
         # insert records
@@ -94,7 +100,12 @@ class TestDatabase:
 
         # select records
         for table in records.keys():
-            result = execute_query(conn, f"SELECT * FROM {table}")
+            query = (
+                "SELECT * FROM subjects;"
+                if table == "subjects"
+                else "SELECT * FROM specimens;"
+            )
+            result = execute_query(conn, query)
             assert result == records[table], AssertionError(
                 f"{result} != {records[table]}"
             )
@@ -102,11 +113,11 @@ class TestDatabase:
         close_connection(conn)
 
     def test_create_cursor(self, conn):
-        """test creating a cursor"""
+        """Test creating a cursor."""
         cur = create_cursor(conn)
         assert cur is not None, AssertionError(f"{cur} is None")
 
     def test_close(self, conn):
-        """test closing a connection"""
+        """Test closing a connection."""
         conn = close_connection(conn)
         assert conn is None, AssertionError(f"{conn} is not None")

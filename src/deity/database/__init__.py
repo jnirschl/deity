@@ -1,3 +1,4 @@
+"""database module for deity."""
 __ALL__ = [
     "create_connection",
     "create_cursor",

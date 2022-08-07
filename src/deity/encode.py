@@ -1,10 +1,11 @@
+"""Module to encode an identifier in a filename with short hash."""
 import hashlib
 import re
 from pathlib import Path
 
 
 def encode(text, num_chars: int = 16):
-    """accept identifier as string and return SHA-256 hash of str identifier"""
+    """Accept identifier as string and return SHA-256 hash of str identifier."""
     if type(text) is not str:
         raise TypeError(f"Requires 'str' input, but received {text}({type(text)})")
 
@@ -21,7 +22,7 @@ def encode_filename(
     pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
     ignore_case=re.IGNORECASE,
 ):
-    """accept filepath and return new filepath with encoded identifier"""
+    """Accept filepath and return new filepath with encoded identifier."""
     filepath = Path(filepath).resolve()
 
     # compile regex to replace identifier

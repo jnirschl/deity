@@ -1,9 +1,11 @@
+"""Module to rename an identifier in a filename with short hash."""
 from pathlib import Path
 
 import deity
 
 
 def rename(filepath, dry_run=False, output_dir=None):
+    """Accept filepath and return new filepath with encoded identifier."""
     filepath = Path(filepath).resolve()
 
     new_filename, _, _ = deity.encode_filename(filepath)

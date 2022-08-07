@@ -1,10 +1,7 @@
-import logging
-import random
-import string
+"""Tests for src/deity/__main__.py."""
 import traceback
 from pathlib import Path
 
-import numpy as np
 import pytest
 from click.testing import CliRunner
 
@@ -29,9 +26,10 @@ def tmp_dir(tmpdir_factory, test_files):
 
 @pytest.mark.slow
 class TestMain:
+    """Class for testing main module functions."""
+
     def test_success_dry_run(self, runner: CliRunner, tmp_dir, test_files):
         """It should exit with a status code of zero."""
-
         result = runner.invoke(main, [tmp_dir, "--dry-run"])
         assert result.exit_code == 0, f"Error: {result.output}"
         if result.exit_code == 0:
@@ -42,7 +40,6 @@ class TestMain:
 
     def test_success_rename_all(self, runner: CliRunner, tmp_dir, test_files, suffix):
         """It should exit with a status code of zero."""
-
         result = runner.invoke(main, [tmp_dir, "--suffix", ",".join(suffix)])
         if result.exit_code == 0:
             for elem in test_files:
@@ -53,7 +50,8 @@ class TestMain:
         else:
             traceback.print_tb(result.exc_info[2])
 
-    def test_fail(self, runner: CliRunner):
+    @pytest.mark.xfail(reason="Invalid input")
+    def test_main_fail(self, runner: CliRunner):
         """It exits with a status code of zero."""
-        result = runner.invoke(main, ["", "--dry-run"])
-        assert result.exit_code == 2
+        result = runner.invoke(main, ["", "", "--dry-run"])
+        assert result.exit_code == 0
