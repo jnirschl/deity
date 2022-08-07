@@ -33,13 +33,12 @@ class TestMain:
         """It should exit with a status code of zero."""
 
         result = runner.invoke(main, [tmp_dir, "--dry-run"])
+        assert result.exit_code == 0, f"Error: {result.output}"
         if result.exit_code == 0:
             for elem in test_files:
                 assert Path(tmp_dir).joinpath(elem).exists(), FileNotFoundError(
                     f"{elem} not found"
                 )
-        else:
-            traceback.print_tb(result.exc_info[2])
 
     def test_success_rename_all(self, runner: CliRunner, tmp_dir, test_files, suffix):
         """It should exit with a status code of zero."""
@@ -54,7 +53,7 @@ class TestMain:
         else:
             traceback.print_tb(result.exc_info[2])
 
-    def test_fail(self, runner: CliRunner) -> None:
+    def test_fail(self, runner: CliRunner):
         """It exits with a status code of zero."""
-        result = runner.invoke(main, [""])
+        result = runner.invoke(main, ["", "--dry-run"])
         assert result.exit_code == 2

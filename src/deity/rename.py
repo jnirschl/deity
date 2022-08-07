@@ -8,11 +8,14 @@ def rename(filepath, dry_run=False, output_dir=None):
 
     new_filename, _, _ = deity.encode_filename(filepath)
 
-    if output_dir:
-        new_filepath = filepath.parents[0].joinpath(new_filename)
-        filepath.rename(new_filepath)
-    else:
-        new_filepath = filepath.parents[0].joinpath(new_filename)
+    # write to source directory if output_dir is not specified
+    if output_dir is None:
+        output_dir = filepath.parent
+
+    new_filepath = output_dir.joinpath(new_filename)
+
+    # rename file if dry_run is False
+    if not dry_run:
         filepath.rename(new_filepath)
 
     return new_filepath

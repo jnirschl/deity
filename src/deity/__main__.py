@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # """Command-line interface."""
+import glob
 import itertools
 import logging
+import pathlib
 from pathlib import Path
 
 import click
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 import deity
 
@@ -14,12 +17,12 @@ import deity
 @click.command()
 @click.argument(
     "input_dir",
-    type=click.Path(exists=True),
+    type=click.Path(exists=True, path_type=pathlib.Path),
 )
 @click.option(
     "--output-dir",
     default=None,
-    type=click.Path(exists=True),
+    type=click.Path(exists=True, path_type=pathlib.Path),
     help="Output directory",
 )
 @click.option("--suffix", default="jpg,png", type=str, help="File extensions")
@@ -33,27 +36,22 @@ def main(input_dir, output_dir=None, suffix="jpg,png", dry_run=False):
     if dry_run:
         logger.info("########## Dry run ##########")
 
-    # set vars
-    input_dir = Path(input_dir).resolve()
-    output_dir = (
-        Path(output_dir).resolve().parent if output_dir else input_dir.parents[0]
-    )
+    # set output directory
+    if output_dir is None:
+        output_dir = input_dir
 
+    # glob all files in input directory
     file_list = []
-    for suffix in suffix.split(","):
-        file_list.append(Path(input_dir).glob("**/*." + suffix))
+    for ext in suffix.split(","):
+        file_list.append(glob.glob(str(input_dir.joinpath("*." + ext))))
 
-    file_list = itertools.chain.from_iterable(file_list)
-    for filepath in file_list:
-        logger.info(f"filepath: {filepath}")
-        if dry_run:
-            logger.info(f"new_filename: {filepath.name}")
-        else:
-            new_filename = deity.rename(
-                filepath, dry_run=dry_run, output_dir=output_dir
-            )
-            logger.info(f"new_filename: {new_filename}")
-        # rename(filepath, output_dir=output_dir, dry_run=dry_run)
+    file_list = list(itertools.chain.from_iterable(file_list))
+    logger.info(f"Found {len(file_list)} files in {input_dir}")
+
+    # rename files
+    for filepath in tqdm(file_list):
+        new_filename = deity.rename(filepath, dry_run=dry_run, output_dir=output_dir)
+        logger.info(f"new_filename: {new_filename}")
 
 
 if __name__ == "__main__":
