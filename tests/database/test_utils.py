@@ -10,10 +10,7 @@ from deity.database import execute_query
 
 @pytest.fixture()
 def conn(tmp_path_factory):
-    temp = tmp_path_factory.mktemp("data")
-    db_file = temp.joinpath("test.db")
-    db_file.touch()
-    return create_connection(db_file)
+    return create_connection(":memory:")
 
 
 @pytest.fixture()
@@ -62,13 +59,28 @@ def records():
 class TestDatabase:
     """class for testing database connection"""
 
-    def test_create_insert(self, conn, create_table_sql, insert_records, records):
+    def test_insert(self, conn, create_table_sql, insert_records, records):
         """test creating a table and inserting a record"""
         for table, col in zip(records.keys(), create_table_sql):
             execute_query(conn, col)
 
         for table, query in zip(records.keys(), insert_records):
             execute_query(conn, query, records[table])
+
+        close_connection(conn)
+
+    @pytest.mark.xfail(reason="Duplicate key")
+    def test_insert_fail(self, conn, create_table_sql, insert_records, records):
+        """test creating a table and inserting a record"""
+        for table, col in zip(records.keys(), create_table_sql):
+            execute_query(conn, col)
+
+        for table, query in zip(records.keys(), insert_records):
+            execute_query(conn, query, records[table])
+            with pytest.raises(sqlite3.IntegrityError):
+                execute_query(conn, query, records[table])
+
+        close_connection(conn)
 
     def test_select(self, conn, create_table_sql, insert_records, records):
         """test creating a table and selecting a record"""
@@ -86,6 +98,8 @@ class TestDatabase:
             assert result == records[table], AssertionError(
                 f"{result} != {records[table]}"
             )
+
+        close_connection(conn)
 
     def test_create_cursor(self, conn):
         """test creating a cursor"""

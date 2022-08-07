@@ -46,9 +46,9 @@ def execute_query(conn, query, records=None, verbose=False):
         conn.commit()
         results = cur.fetchall()
     except Error as e:
-        logging.error(f"Error executing query: {e}")
-    finally:
         cur.close()
+        logging.error(f"Error executing query: {e}")
+        raise e
 
     return results
 

@@ -28,7 +28,6 @@ def tmp_dir(tmpdir_factory, test_files):
 
 
 @pytest.mark.slow
-# @pytest.mark.parametrize("tmp_file", tmp_dir, scope="class")
 class TestMain:
     def test_success_dry_run(self, runner: CliRunner, tmp_dir, test_files):
         """It should exit with a status code of zero."""
