@@ -1,10 +1,34 @@
 """Tests for src/deity/encode.py."""
 import hashlib
+import re
 from pathlib import Path
 
+import numpy as np
 import pytest
 
-from src import deity
+import deity
+
+
+@pytest.fixture()
+def regex_id():
+    """Returns regex for identifier."""
+    return re.compile("[SL][HP][SDFNA]-\\d{2}-\\d{5}", re.IGNORECASE)
+
+
+@pytest.fixture()
+def test_input():
+    """Fixture for creating test cases.
+
+    Returns: tuple of (input, result, error)
+    """
+    return [
+        ("SHA-00-54321", True, None),
+        ("LPS-00-54321", True, None),
+        ("SHS-00-54321", True, None),
+        (np.random.randint(99999), False, TypeError),
+        (None, False, TypeError),
+        (b"SHS-00-54321", False, TypeError),
+    ]
 
 
 class TestEncode:
@@ -40,26 +64,26 @@ class TestEncode:
 
 
 class TestEncodeFilename:
-    """Class for testing encode_filename module functions."""
+    """Class for testing encode_single module functions."""
 
     def test_input(self, test_input):
         """Test input types."""
         for filename, result, _error in test_input:
             if result:
-                assert deity.encode_filename(filename)
+                assert deity.encode_single(filename)
 
     def test_input_error(self, test_input):
         """Raise exception if input is not a string."""
         for filename, _result, error in test_input:
             if error:
                 with pytest.raises(error):
-                    deity.encode_filename(filename)
+                    deity.encode_single(filename)
 
     def test_hash(self, test_input):
         """Test hash function."""
         for filename, result, _error in test_input:
             if result:
-                encode_filename, full_hash, _ = deity.encode_filename(filename)
+                encode_single, full_hash, _ = deity.encode_single(filename)
                 hashlib_hash = hashlib.sha256(filename.strip().encode()).hexdigest()
                 assert full_hash == hashlib_hash
 
@@ -68,12 +92,12 @@ class TestEncodeFilename:
         for filename, _result, error in test_input:
             if error:
                 with pytest.raises(TypeError):
-                    encode_fail, _ = deity.encode_filename(filename)
+                    encode_fail, _ = deity.encode_single(filename)
 
     def test_filename_success(self, test_files, regex_id):
         """Test that new filename is different from original filename."""
         for fname in test_files:
-            new_fname, _, _ = deity.encode_filename(fname)
+            new_fname, _, _ = deity.encode_single(fname)
 
             assert new_fname != fname, f"{fname} should be different from {new_fname}"
             assert not regex_id.search(new_fname), f"{new_fname} contains identifier"
@@ -83,7 +107,7 @@ class TestEncodeFilename:
         for fname in test_files:
             fname = Path(fname)
             reverse_fname = fname.name[::-1]
-            new_rev_fname, _, _ = deity.encode_filename(reverse_fname)
+            new_rev_fname, _, _ = deity.encode_single(reverse_fname)
             assert new_rev_fname.name[::-1] == fname.name, AssertionError(
                 f"{new_rev_fname} != {fname}"
             )
