@@ -1,40 +1,30 @@
 """Configure shared fixtures for tests."""
 import random
-import re
 import string
 
 import numpy as np
 import pytest
 
-
-@pytest.fixture()
-def regex_id():
-    """Returns regex for identifier."""
-    return re.compile("[SL][HP][SDFNA]-\\d{2}-\\d{5}", re.IGNORECASE)
+from src.deity.database import close_connection
+from src.deity.database import create_connection
+from src.deity.database import execute_query
 
 
 @pytest.fixture()
-def temp_files(tmpdir_factories):
-    """Fixture for creating temporary files."""
-    return tmpdir_factories.mktemp("data")
+def tmp_dir(tmp_path_factory, test_files):
+    """Fixture for a temporary file."""
+    tmp_dir = tmp_path_factory.mktemp("data")
+    for elem in test_files:
+        tmp_dir.joinpath(elem).write_text("")
+    return str(tmp_dir)
 
 
 @pytest.fixture()
-def prefix():
-    """Fixture for creating temporary file prefixes."""
-    return ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
-
-
-@pytest.fixture()
-def suffix():
-    """Fixture for creating temporary file extensions."""
-    return ["jpg", "png", "tif", "tiff"]
-
-
-@pytest.fixture()
-def test_files(prefix, suffix, num_test_cases=10):
+def test_files(num_test_cases=10):
     """Fixture to generate test filename combinations."""
-    return [
+    prefix = ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
+    suffix = ["jpg", "png", "tif", "tiff"]
+    temp_filenames = [
         (
             f"{random.choice(prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}_"
             f"part-{random.choice(string.ascii_uppercase)}_diagnosis_"
@@ -43,19 +33,72 @@ def test_files(prefix, suffix, num_test_cases=10):
         )
         for elem in range(num_test_cases)
     ]
+    return temp_filenames
 
 
 @pytest.fixture()
-def test_input():
-    """Fixture for creating test cases.
+def conn(tmp_path_factory):
+    """Fixture for a temporary in-memory database connection."""
+    return create_connection(":memory:")
 
-    Returns: tuple of (input, result, error)
-    """
+
+@pytest.fixture()
+def table_list():
+    """Fixture for table names in the database."""
+    return ["subjects", "specimens"]
+
+
+@pytest.fixture()
+def column_list():
+    """Fixture for column names in the database."""
+    return ["mrn", "accession"]
+
+
+@pytest.fixture()
+def create_table_sql(table_list, column_list):
+    """Fixture for the SQL statement to create a table."""
     return [
-        ("SHA-00-54321", True, None),
-        ("LPS-00-54321", True, None),
-        ("SHS-00-54321", True, None),
-        (np.random.randint(99999), False, TypeError),
-        (None, False, TypeError),
-        (b"SHS-00-54321", False, TypeError),
+        f"CREATE TABLE IF NOT EXISTS {elem} ("
+        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+        f"{col} INTEGER NOT NULL UNIQUE,"
+        f"{col}_short_hash TEXT NOT NULL UNIQUE,"
+        f"{col}_full_hash TEXT NOT NULL UNIQUE,"
+        "filepath TEXT NOT NULL"
+        ");"
+        for elem, col in zip(table_list, column_list)
     ]
+
+
+@pytest.fixture()
+def insert_records(table_list):
+    """Fixture for the SQL statement to insert records into a table."""
+    return [f"INSERT INTO {elem} VALUES (?, ?, ?, ?, ?);" for elem in table_list]
+
+
+@pytest.fixture()
+def records():
+    """Fixture for the records to insert into the database."""
+    return {
+        "subjects": [
+            (1, 12345, "full_hash1", "short_hash1", "filepath1"),
+            (2, 54321, "full_hash2", "short_hash2", "filepath2"),
+        ],
+        "specimens": [
+            (1, "SHS-00-12345", "full_hash1", "short_hash1", "filepath1"),
+            (2, "SHS-99-54321", "full_hash2", "short_hash2", "filepath2"),
+        ],
+    }
+
+
+@pytest.fixture()
+def tmp_db(tmp_path_factory, create_table_sql, insert_records):
+    """Fixture for creating a temporary database."""
+    db_filepath = tmp_path_factory.mktemp("data").joinpath("temp.db")
+    conn = create_connection(db_filepath)
+
+    for elem in create_table_sql:
+        execute_query(conn, elem)
+
+    close_connection(conn)
+
+    return str(db_filepath)
