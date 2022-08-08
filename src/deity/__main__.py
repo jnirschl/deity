@@ -56,6 +56,10 @@ def main(
     if output_dir is None:
         output_dir = input_dir
 
+    # set database path to input directory if not specified
+    if Path(database_file).parent == Path("."):
+        database_file = Path(input_dir).joinpath(database_file)
+
     # set column name
     column_name = "accession" if table_name == "specimens" else "mrn"
 
