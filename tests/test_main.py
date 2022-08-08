@@ -57,9 +57,9 @@ class TestMain:
         result = runner.invoke(main, [tmp_dir, tmp_db, table])
         if result.exit_code == 0:
             for elem in test_files:
-                new_name = encode_single(elem)[0]
-                assert Path(tmp_dir).joinpath(new_name).exists(), FileNotFoundError(
-                    f"{new_name} was expected but not found"
+                _id, new_filepath, _, _ = encode_single(elem)
+                assert Path(tmp_dir).joinpath(new_filepath).exists(), FileNotFoundError(
+                    f"{new_filepath} was expected but not found"
                 )
         else:
             traceback.print_tb(result.exc_info[2])

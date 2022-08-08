@@ -21,7 +21,7 @@ from deity.encode import encode_all
 )
 @click.argument(
     "database-file",
-    type=click.Path(),
+    type=click.Path(path_type=pathlib.Path),
 )
 @click.argument(
     "table-name",
@@ -34,6 +34,7 @@ from deity.encode import encode_all
     help="Output directory",
 )
 @click.option("--suffix", default="jpg,png", type=click.STRING, help="File extensions")
+@click.option("--decode", is_flag=True, help="Decode files instead of encoding")
 @click.option("--dry-run", is_flag=True, help="Dry run")
 @click.version_option()
 def main(
@@ -43,13 +44,18 @@ def main(
     output_dir: str = None,
     suffix: str = "jpg,png",
     pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
+    decode: bool = False,
     dry_run: bool = False,
 ):
-    """Encode identifier in filename, save to database, and rename files in a directory."""
+    """Encode or decode files in a directory."""
     logger = logging.getLogger(__name__)
-    logger.info(f"Input directory: {input_dir}")
     if dry_run:
         logger.info("########## Dry run ##########")
+
+    # log input parameters
+    logger.info(
+        f"{'Decoding' if decode else 'Encoding'} files with ext {suffix} in {input_dir}"
+    )
 
     # set output directory to input directory if not specified
     suffix = suffix.split(",")
@@ -57,8 +63,8 @@ def main(
         output_dir = input_dir
 
     # set database path to input directory if not specified
-    if Path(database_file).parent == Path("."):
-        database_file = Path(input_dir).joinpath(database_file)
+    if database_file.parent == Path("."):
+        database_file = input_dir.joinpath(database_file)
 
     # set column name
     column_name = "accession" if table_name == "specimens" else "mrn"
@@ -78,13 +84,20 @@ def main(
         file_list = list(itertools.chain.from_iterable(file_list))
         logger.info(f"Found {len(file_list)} files in {input_dir}")
 
-    # encode all files
-    df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
+    # encode/decode files
+    if not decode:
+        df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
+    else:
+        raise NotImplementedError(
+            f"decode_all not yet implemented"
+        )  # df = database.decode_all(file_list, database_file, table_name, column_name)
+
+    # create dataframe for renaming files
     df_file_rename = df[["old_filepath", "new_filepath"]].copy()
     df.pop("old_filepath")
     df_sql = df.rename(
         columns={
-            "identifier": "accession",
+            "identifier": f"{column_name}",
             "short_hash": f"{column_name}_short_hash",
             "full_hash": f"{column_name}_full_hash",
             "new_filepath": "filepath",
@@ -102,7 +115,6 @@ def main(
 
             # rename files
             logger.info("Renaming files...")
-
             df_file_rename.apply(
                 lambda row: row["old_filepath"].rename(row["new_filepath"]), axis=1
             )
