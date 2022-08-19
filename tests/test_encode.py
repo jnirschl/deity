@@ -124,6 +124,6 @@ class TestEncodeAll:
 
     def test_input_fail(self, test_input):
         """Raise exception if input is not a list."""
-        for filename, _result, error in test_input:
-            with pytest.raises(error):
+        for filename, _result, _error in test_input:
+            with pytest.raises(TypeError):
                 deity.encode_all(filename)
