@@ -11,7 +11,7 @@ from src.deity.database import execute_query
 
 
 @pytest.fixture()
-def tmp_dir(tmp_path_factory, test_files):
+def temp_dir(tmp_path_factory, test_files):
     """Fixture for a temporary file."""
     tmp_dir = tmp_path_factory.mktemp("data")
     for elem in test_files:
@@ -23,7 +23,7 @@ def tmp_dir(tmp_path_factory, test_files):
 def test_files(num_test_cases=10):
     """Fixture to generate test filename combinations."""
     prefix = ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
-    suffix = ["jpg", "png", "tif", "tiff"]
+    suffix = ["jpg", "png", "tif", "tiff", "txt"]
     temp_filenames = [
         (
             f"{random.choice(prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}_"

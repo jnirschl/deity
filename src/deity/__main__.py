@@ -20,7 +20,9 @@ from deity.encode import encode_all
 @click.option(
     "--output-dir", default=None, type=click.Path(exists=True, path_type=Path)
 )
-@click.option("--suffix", default="jpg,png", type=click.STRING, help="File extensions")
+@click.option(
+    "--extension", default="txt,jpg,png", type=click.STRING, help="File extensions"
+)
 @click.option("--decode", is_flag=True, help="Decode files instead of encoding")
 @click.option("--dry-run", is_flag=True, help="Dry run")
 @click.version_option()
@@ -29,7 +31,7 @@ def main(
     database_file: Path,
     table_name: str,
     output_dir: str = None,
-    suffix: str = "jpg,png",
+    extension: str = "txt,jpg,png",
     pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
     decode: bool = False,
     dry_run: bool = False,
@@ -41,11 +43,13 @@ def main(
 
     # log input parameters
     logger.info(
-        f"{'Decoding' if decode else 'Encoding'} files with ext {suffix} in {input_dir}"
+        f"{'Decoding' if decode else 'Encoding'} files with ext {extension} in {input_dir}"
     )
 
+    # convert extension string to list of extensions
+    extension = extension.split(",")
+
     # set output directory to input directory if not specified
-    suffix = suffix.split(",")
     if output_dir is None:
         output_dir = input_dir
 
@@ -61,7 +65,7 @@ def main(
 
     # glob all files in input directory
     file_list = []
-    for ext in suffix:
+    for ext in extension:
         file_list.append(glob.glob(str(input_dir.joinpath("*." + ext))))
 
     # flatten list of lists
