@@ -3,7 +3,6 @@
 import glob
 import itertools
 import logging
-import pathlib
 from pathlib import Path
 
 import click
@@ -15,23 +14,11 @@ from deity.encode import encode_all
 
 
 @click.command()
-@click.argument(
-    "input-dir",
-    type=click.Path(exists=True, path_type=pathlib.Path),
-)
-@click.argument(
-    "database-file",
-    type=click.Path(path_type=pathlib.Path),
-)
-@click.argument(
-    "table-name",
-    type=click.STRING,
-)
+@click.argument("input-dir", type=click.Path(exists=True, path_type=Path))
+@click.argument("database-file", type=click.Path(path_type=Path))
+@click.argument("table-name", type=click.STRING)
 @click.option(
-    "--output-dir",
-    default=None,
-    type=click.Path(exists=True, path_type=pathlib.Path),
-    help="Output directory",
+    "--output-dir", default=None, type=click.Path(exists=True, path_type=Path)
 )
 @click.option("--suffix", default="jpg,png", type=click.STRING, help="File extensions")
 @click.option("--decode", is_flag=True, help="Decode files instead of encoding")
@@ -89,7 +76,7 @@ def main(
         df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
     else:
         raise NotImplementedError(
-            f"decode_all not yet implemented"
+            "decode_all not yet implemented"
         )  # df = database.decode_all(file_list, database_file, table_name, column_name)
 
     # create dataframe for renaming files
