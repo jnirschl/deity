@@ -16,7 +16,7 @@ classifiers = [
 Changelog = "https://github.com/jnirschl/deity/releases"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 click = ">=8.0.1"
 python-dotenv = "^0.20.0"
 numpy = "^1.23.1"
@@ -70,7 +70,7 @@ fail_under = 90
 
 [tool.black]
 line-length = 88
-target-version = ["py38"]
+target-version = ["py39"]
 
 [tool.isort]
 profile = "black"
