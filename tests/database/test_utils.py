@@ -11,7 +11,7 @@ from deity.database import execute_query
 class TestDatabase:
     """Class for testing database connection and management."""
 
-    def test_insert(self, conn, create_table_sql, insert_records, records):
+    def test_insert(self, conn, create_table_sql, insert_records, records) -> None:
         """Test creating a table and inserting a record."""
         for col in create_table_sql:
             execute_query(conn, col)
@@ -22,7 +22,7 @@ class TestDatabase:
         close_connection(conn)
 
     # @pytest.mark.xfail(reason="SQL error UNIQUE constraint error")
-    def test_insert_fail(self, conn, create_table_sql, insert_records, records):
+    def test_insert_fail(self, conn, create_table_sql, insert_records, records) -> None:
         """Test creating a table and inserting a record."""
         for col in create_table_sql:
             execute_query(conn, col)
@@ -34,7 +34,7 @@ class TestDatabase:
 
         close_connection(conn)
 
-    def test_select(self, conn, create_table_sql, insert_records, records):
+    def test_select(self, conn, create_table_sql, insert_records, records) -> None:
         """Test creating a table and selecting a record."""
         # create the table
         for col in create_table_sql:
@@ -58,12 +58,12 @@ class TestDatabase:
 
         close_connection(conn)
 
-    def test_create_cursor(self, conn):
+    def test_create_cursor(self, conn) -> None:
         """Test creating a cursor."""
         cur = create_cursor(conn)
         assert cur is not None, AssertionError(f"{cur} is None")
 
-    def test_close(self, conn):
+    def test_close(self, conn) -> None:
         """Test closing a connection."""
         conn = close_connection(conn)
         assert conn is None, AssertionError(f"{conn} is not None")

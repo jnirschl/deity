@@ -35,7 +35,7 @@ def main(
     pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
     decode: bool = False,
     dry_run: bool = False,
-):
+) -> None:
     """Encode or decode files in a directory."""
     logger = logging.getLogger(__name__)
     if dry_run:

@@ -1,6 +1,6 @@
 # DeITy
 
-De-Identification Toolkit (DeITy) is a simple python package for deidentifying files by replacing them with a unique alphanumeric identifier.
+De-Identification Toolkit (DeITy) is a simple python package for deidentifying files by replacing them with an alphanumeric identifier.
 
 [![PyPI](https://img.shields.io/pypi/v/deity.svg)][pypi_]
 [![Status](https://img.shields.io/pypi/status/deity.svg)][status]
