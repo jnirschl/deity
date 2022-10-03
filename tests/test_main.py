@@ -14,7 +14,7 @@ EXT_LIST = ["png", "jpg", "txt", ".pdf", ".tif", ".tiff"]
 
 
 @pytest.fixture()
-def table():
+def table() -> str:
     """Returns table name."""
     return "specimens"
 
@@ -36,7 +36,7 @@ class TestMain:
         tmp_db,
         table,
         test_files,
-    ):
+    ) -> None:
         """Perform a dry run and check that no files are renamed."""
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--dry-run"])
         assert result.exit_code == 0, f"Error: {result.exception}"
@@ -62,7 +62,9 @@ class TestMain:
             for _ in range(10)
         ],
     )
-    def test_main_rename(self, runner, temp_dir, tmp_db, table, test_files, ext):
+    def test_main_rename(
+        self, runner, temp_dir, tmp_db, table, test_files, ext
+    ) -> None:
         """Run the program and check that all files are renamed."""
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--extension", ext])
         assert result.exit_code == 0, f"Error: {result.exception}"
@@ -98,7 +100,7 @@ class TestMain:
     )
     def test_different_extensions(
         self, runner, temp_dir, tmp_db, table, test_files, ext
-    ):
+    ) -> None:
         """Run the program and check that only files matching the extension are renamed."""
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--extension", ext])
         assert result.exit_code == 0, f"Error: {result.exception}"
@@ -120,7 +122,7 @@ class TestMain:
             traceback.print_tb(result.exc_info[2])
 
     @pytest.mark.xfail(reason="Not implemented")
-    def test_main_database(self, runner, temp_dir, tmp_db, table, test_files):
+    def test_main_database(self, runner, temp_dir, tmp_db, table, test_files) -> None:
         """Update the database with new files."""
         result = runner.invoke(main, [temp_dir, tmp_db, table])
         if result.exit_code == 0:

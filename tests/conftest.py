@@ -1,6 +1,9 @@
 """Configure shared fixtures for tests."""
 import random
+import sqlite3
 import string
+from pathlib import Path
+from typing import List
 
 import numpy as np
 import pytest
@@ -11,7 +14,7 @@ from src.deity.database import execute_query
 
 
 @pytest.fixture()
-def temp_dir(tmp_path_factory, test_files):
+def temp_dir(tmp_path_factory, test_files) -> str:
     """Fixture for a temporary file."""
     tmp_dir = tmp_path_factory.mktemp("data")
     for elem in test_files:
@@ -20,7 +23,7 @@ def temp_dir(tmp_path_factory, test_files):
 
 
 @pytest.fixture()
-def test_files(num_test_cases=10):
+def test_files(num_test_cases: str = 10) -> List[str]:
     """Fixture to generate test filename combinations."""
     prefix = ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
     suffix = ["jpg", "png", "tif", "tiff", "txt"]
@@ -37,25 +40,25 @@ def test_files(num_test_cases=10):
 
 
 @pytest.fixture()
-def conn(tmp_path_factory):
+def conn(tmp_path_factory) -> sqlite3.Connection:
     """Fixture for a temporary in-memory database connection."""
     return create_connection(":memory:")
 
 
 @pytest.fixture()
-def table_list():
+def table_list() -> List[str]:
     """Fixture for table names in the database."""
     return ["subjects", "specimens"]
 
 
 @pytest.fixture()
-def column_list():
+def column_list() -> List[str]:
     """Fixture for column names in the database."""
     return ["mrn", "accession"]
 
 
 @pytest.fixture()
-def create_table_sql(table_list, column_list):
+def create_table_sql(table_list, column_list) -> List[str]:
     """Fixture for the SQL statement to create a table."""
     return [
         f"CREATE TABLE IF NOT EXISTS {elem} ("
@@ -70,13 +73,13 @@ def create_table_sql(table_list, column_list):
 
 
 @pytest.fixture()
-def insert_records(table_list):
+def insert_records(table_list) -> List[str]:
     """Fixture for the SQL statement to insert records into a table."""
     return [f"INSERT INTO {elem} VALUES (?, ?, ?, ?, ?);" for elem in table_list]
 
 
 @pytest.fixture()
-def records():
+def records() -> dict:
     """Fixture for the records to insert into the database."""
     return {
         "subjects": [
@@ -91,7 +94,7 @@ def records():
 
 
 @pytest.fixture()
-def tmp_db(tmp_path_factory, create_table_sql, insert_records):
+def tmp_db(tmp_path_factory: Path, create_table_sql, insert_records) -> str:
     """Fixture for creating a temporary database."""
     db_filepath = tmp_path_factory.mktemp("data").joinpath("temp.db")
     conn = create_connection(db_filepath)

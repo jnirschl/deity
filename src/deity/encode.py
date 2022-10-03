@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def encode(text, num_chars: int = 16):
+def encode(text: str, num_chars: int = 16) -> tuple:
     """Accept identifier as string and return SHA-256 hash of str identifier."""
     if type(text) is not str:
         raise TypeError(f"Requires 'str' input, but received {text}({type(text)})")
@@ -26,7 +26,7 @@ def encode_single(
     output_dir: str = None,
     ignore_case=re.IGNORECASE,
     num_chars: int = 16,
-):
+) -> tuple:
     """Accept filepath and return new filepath with encoded identifier."""
     # create Path object
     filepath = Path(filepath).resolve()
@@ -62,7 +62,7 @@ def encode_all(
     output_dir: str = None,
     ignore_case: bool = re.IGNORECASE,
     num_chars: int = 16,
-):
+) -> pd.DataFrame:
     """Accept filepath and return new filepath with encoded identifier."""
     if type(filepath_list) is not list:
         raise TypeError(

@@ -9,7 +9,7 @@ log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 
-def create_connection(db_file, verbose=False):
+def create_connection(db_file, verbose=False) -> sqlite3.Connection:
     """Wrapper for sqlite3.connect()."""
     conn = None
 
@@ -29,12 +29,12 @@ def create_connection(db_file, verbose=False):
     return conn
 
 
-def create_cursor(conn):
+def create_cursor(conn) -> sqlite3.Cursor:
     """Create a cursor for the connection."""
     return conn.cursor()
 
 
-def execute_query(conn, query, records=None, verbose=False):
+def execute_query(conn, query, records=None) -> list:
     """Execute a query."""
     cur = create_cursor(conn)
     results = None
@@ -54,7 +54,7 @@ def execute_query(conn, query, records=None, verbose=False):
     return results
 
 
-def close_connection(conn):
+def close_connection(conn) -> None:
     """Close the connection."""
     conn.close()
     return None
