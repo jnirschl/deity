@@ -4,6 +4,7 @@ De-Identification Toolkit (DeITy) is a simple python package for deidentifying
 files that may contain sensitive identifiers by replacing them with an
 alphanumeric identifier.
 
+<!---
 [![PyPI](https://img.shields.io/pypi/v/deity.svg)][pypi_]
 [![Status](https://img.shields.io/pypi/status/deity.svg)][status]
 [![Python Version](https://img.shields.io/pypi/pyversions/deity)][python version]
@@ -11,8 +12,9 @@ alphanumeric identifier.
 
 [![Read the documentation at https://deity.readthedocs.io/](https://img.shields.io/readthedocs/deity/latest.svg?label=Read%20the%20Docs)][read the docs]
 [![Tests](https://github.com/jnirschl/deity/workflows/Tests/badge.svg)][tests]
-[![Codecov](https://codecov.io/gh/jnirschl/deity/branch/main/graph/badge.svg)][codecov]
+--->
 
+[![Codecov](https://codecov.io/gh/jnirschl/deity/branch/main/graph/badge.svg)][codecov]
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 
