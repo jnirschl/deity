@@ -8,7 +8,7 @@ pull_request_rules:
   - name: automatic merge for Dependabot pull requests
     conditions:
       - author=dependabot[bot]
-      - title~=^Bump [^\s]+ from ([\d]+)\..+ to \1\.
+      - title~=(^(build|chore)\(deps\):\s+[B|b]ump [^\s]+ from ([\d]+)\..+ to \d+)|(^Bump [^\s]+ from ([\d]+)\..+ to \1\.)
     actions:
       merge:
         method: merge
