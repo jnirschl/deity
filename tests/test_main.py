@@ -25,7 +25,7 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.mark.slow
+#TODO fix pytest duplicate temp directories
 class TestMain:
     """Class for testing main module functions."""
 

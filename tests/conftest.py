@@ -66,6 +66,7 @@ def create_table_sql(table_list, column_list) -> List[str]:
         f"{col} INTEGER NOT NULL UNIQUE,"
         f"{col}_short_hash TEXT NOT NULL UNIQUE,"
         f"{col}_full_hash TEXT NOT NULL UNIQUE,"
+        "old_filepath TEXT NOT NULL,"
         "filepath TEXT NOT NULL"
         ");"
         for elem, col in zip(table_list, column_list)
@@ -75,7 +76,7 @@ def create_table_sql(table_list, column_list) -> List[str]:
 @pytest.fixture()
 def insert_records(table_list) -> List[str]:
     """Fixture for the SQL statement to insert records into a table."""
-    return [f"INSERT INTO {elem} VALUES (?, ?, ?, ?, ?);" for elem in table_list]
+    return [f"INSERT INTO {elem} VALUES (?, ?, ?, ?, ?, ?);" for elem in table_list]
 
 
 @pytest.fixture()
@@ -83,12 +84,12 @@ def records() -> dict:
     """Fixture for the records to insert into the database."""
     return {
         "subjects": [
-            (1, 12345, "full_hash1", "short_hash1", "filepath1"),
-            (2, 54321, "full_hash2", "short_hash2", "filepath2"),
+            (1, 12345, "full_hash1", "short_hash1", "old_filepath1","filepath1"),
+            (2, 54321, "full_hash2", "short_hash2", "old_filepath1","filepath2"),
         ],
         "specimens": [
-            (1, "SHS-00-12345", "full_hash1", "short_hash1", "filepath1"),
-            (2, "SHS-99-54321", "full_hash2", "short_hash2", "filepath2"),
+            (1, "SHS-00-12345", "full_hash1", "short_hash1", "old_filepath1", "filepath1"),
+            (2, "SHS-99-54321", "full_hash2", "short_hash2", "old_filepath1", "filepath2"),
         ],
     }
 
