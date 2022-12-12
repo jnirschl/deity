@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Command-line interface."""
 import glob
-import itertools
 import logging
 from pathlib import Path
 
@@ -10,6 +9,7 @@ from dotenv import find_dotenv
 from dotenv import load_dotenv
 
 from deity import database
+from deity.decode import decode_all
 from deity.encode import encode_all
 
 
@@ -21,7 +21,7 @@ from deity.encode import encode_all
     "--output-dir", default=None, type=click.Path(exists=True, path_type=Path)
 )
 @click.option(
-    "--extension", default="txt,jpg,png", type=click.STRING, help="File extensions"
+    "--extension", default="txt,jpg,png", type=click.STRING, help="Extensions"
 )
 @click.option("--decode", is_flag=True, help="Decode files instead of encoding")
 @click.option("--dry-run", is_flag=True, help="Dry run")
@@ -66,59 +66,69 @@ def main(
     # glob all files in input directory
     file_list = []
     for ext in extension:
-        file_list.append(glob.glob(str(input_dir.joinpath("*." + ext))))
+        # get files with extension recursively and add to list
+        search_path = str(input_dir.joinpath(f"**/*.{ext}"))
+        file_list.extend(glob.glob(search_path, recursive=True))
 
-    # flatten list of lists
+    # check if files were found
     if len(file_list) == 0:
-        raise ValueError(f"No files found in {input_dir}")
+        raise FileNotFoundError(f"No {extension} files found in {input_dir}")
     else:
-        file_list = list(itertools.chain.from_iterable(file_list))
         logger.info(f"Found {len(file_list)} files in {input_dir}")
 
     # encode/decode files
-    if not decode:
-        df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
+    if decode:
+        # decode files
+        logger.info(f"Decoding files from database {database_file.name}...")
+        decode_all(input_dir, database_file, table_name)
     else:
-        raise NotImplementedError(
-            "decode_all not yet implemented"
-        )  # df = database.decode_all(file_list, database_file, table_name, column_name)
+        # encode files
+        logger.info(f"Encoding {extension} files to database {database_file.name}...")
+        df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
 
-    # create dataframe for renaming files
-    df_file_rename = df[["old_filepath", "new_filepath"]].copy()
+        # create dataframe for renaming files
+        df_file_rename = df[["old_filepath", "new_filepath"]].copy()
 
-    # rename columns
-    df_sql = df.rename(
-        columns={
-            "identifier": f"{column_name}",
-            "short_hash": f"{column_name}_short_hash",
-            "full_hash": f"{column_name}_full_hash",
-            "new_filepath": "filepath",
-        }
-    )
+        # rename columns
+        df_sql = df.rename(
+            columns={
+                "identifier": f"{column_name}",
+                "short_hash": f"{column_name}_short_hash",
+                "full_hash": f"{column_name}_full_hash",
+                "new_filepath": "filepath",
+            }
+        )
 
-    # convert old_filepath from Path to str
-    df_sql["old_filepath"] = df_sql["old_filepath"].astype(str)
+        # convert old_filepath from Path to str
+        df_sql["old_filepath"] = df_sql["old_filepath"].astype(str)
 
-    # connect to database
-    conn = database.create_connection(database_file)
+        # connect to database
+        conn = database.create_connection(database_file)
 
-    try:
-        if not dry_run:
-            # update database, fail if table already exists
-            logger.info("Updating database...")
-            df_sql.to_sql(table_name, conn, if_exists="append", index_label="id")
+        try:
+            if not dry_run:
+                # update database, fail if table already exists
+                if len(df_sql) > 0:
+                    logger.info("Updating database...")
+                    df_sql.to_sql(
+                        table_name, conn, if_exists="append", index_label="id"
+                    )
+                    df_sql.to_csv(output_dir.joinpath(f"{table_name}.csv"), index=False)
 
-            # rename files
-            logger.info("Renaming files...")
-            df_file_rename.apply(
-                lambda row: row["old_filepath"].rename(row["new_filepath"]), axis=1
-            )
+                    # rename files
+                    logger.info("Renaming files...")
+                    df_file_rename.apply(
+                        lambda row: row["old_filepath"].rename(row["new_filepath"]),
+                        axis=1,
+                    )
+                else:
+                    logger.info(f"No {extension} files found in {input_dir}")
 
-    except Exception as e:
-        logger.error(e)
-        raise e
-    finally:
-        conn.close()
+        except Exception as e:
+            logger.error(e)
+            raise e
+        finally:
+            conn.close()
 
 
 if __name__ == "__main__":
