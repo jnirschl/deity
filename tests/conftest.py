@@ -69,7 +69,7 @@ def create_table_sql(table_list, column_list) -> List[str]:
         "old_filepath TEXT NOT NULL,"
         "filepath TEXT NOT NULL"
         ");"
-        for elem, col in zip(table_list, column_list)
+        for elem, col in zip(table_list, column_list, strict=True)
     ]
 
 
@@ -84,12 +84,26 @@ def records() -> dict:
     """Fixture for the records to insert into the database."""
     return {
         "subjects": [
-            (1, 12345, "full_hash1", "short_hash1", "old_filepath1","filepath1"),
-            (2, 54321, "full_hash2", "short_hash2", "old_filepath1","filepath2"),
+            (1, 12345, "full_hash1", "short_hash1", "old_filepath1", "filepath1"),
+            (2, 54321, "full_hash2", "short_hash2", "old_filepath1", "filepath2"),
         ],
         "specimens": [
-            (1, "SHS-00-12345", "full_hash1", "short_hash1", "old_filepath1", "filepath1"),
-            (2, "SHS-99-54321", "full_hash2", "short_hash2", "old_filepath1", "filepath2"),
+            (
+                1,
+                "SHS-00-12345",
+                "full_hash1",
+                "short_hash1",
+                "old_filepath1",
+                "filepath1",
+            ),
+            (
+                2,
+                "SHS-99-54321",
+                "full_hash2",
+                "short_hash2",
+                "old_filepath1",
+                "filepath2",
+            ),
         ],
     }
 
