@@ -16,7 +16,7 @@ class TestDatabase:
         for col in create_table_sql:
             execute_query(conn, col)
 
-        for table, query in zip(records.keys(), insert_records):
+        for table, query in zip(records.keys(), insert_records, strict=True):
             execute_query(conn, query, records[table])
 
         close_connection(conn)
@@ -27,7 +27,7 @@ class TestDatabase:
         for col in create_table_sql:
             execute_query(conn, col)
 
-        for table, query in zip(records.keys(), insert_records):
+        for table, query in zip(records.keys(), insert_records, strict=True):
             execute_query(conn, query, records[table])
             with pytest.raises(sqlite3.IntegrityError):
                 execute_query(conn, query, records[table])
@@ -41,7 +41,7 @@ class TestDatabase:
             execute_query(conn, col)
 
         # insert records
-        for table, query in zip(records.keys(), insert_records):
+        for table, query in zip(records.keys(), insert_records, strict=True):
             execute_query(conn, query, records=records[table])
 
         # select records
