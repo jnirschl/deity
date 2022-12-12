@@ -52,7 +52,9 @@ class TestEncode:
         for filename, result, _error in test_input:
             if result:
                 encode_hash, _ = deity.encode(filename)
-                hashlib_hash = hashlib.md5(filename.strip().encode()).hexdigest()
+                hashlib_hash = hashlib.md5(
+                    filename.strip().encode(), usedforsecurity=False
+                ).hexdigest()
                 assert encode_hash == hashlib_hash
 
     def test_hash_error(self, test_input):
@@ -84,7 +86,9 @@ class TestEncodeSingle:
         for filename, result, _error in test_input:
             if result:
                 _id, encode_single, full_hash, _ = deity.encode_single(filename)
-                hashlib_hash = hashlib.md5(filename.strip().encode()).hexdigest()
+                hashlib_hash = hashlib.md5(
+                    filename.strip().encode(), usedforsecurity=False
+                ).hexdigest()
                 assert full_hash == hashlib_hash
 
     def test_hash_error(self, test_input):
