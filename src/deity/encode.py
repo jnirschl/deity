@@ -7,6 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from typing import Union
 
+
 def encode(text: str, num_chars: int = 16) -> tuple:
     """Accept identifier as string and return md5 hash of str identifier."""
     if type(text) is not str:
