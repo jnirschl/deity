@@ -15,7 +15,7 @@ from deity.encode import encode_all
 
 @click.command()
 @click.argument("input-dir", type=click.Path(exists=True, path_type=Path))
-@click.argument("database-file", type=click.Path(path_type=Path))
+@click.argument("database-file", type=click.Path(exists=True, path_type=Path))
 @click.argument("table-name", type=click.STRING)
 @click.option(
     "--output-dir", default=None, type=click.Path(exists=True, path_type=Path)
@@ -106,7 +106,8 @@ def main(
                     df_sql.to_sql(
                         table_name, conn, if_exists="append", index_label="id"
                     )
-                    df_sql.to_csv(output_dir.joinpath(f"{table_name}.csv"), index=False)
+                    csv_filename = database_file.with_name(f"{database_file.name}_{table_name}.csv")
+                    df_sql.to_csv(csv_filename, index=False)
 
                     # rename files
                     logger.info("Renaming files...")
