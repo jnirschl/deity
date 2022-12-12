@@ -8,13 +8,13 @@ from tqdm import tqdm
 
 
 def encode(text: str, num_chars: int = 16) -> tuple:
-    """Accept identifier as string and return SHA-256 hash of str identifier."""
+    """Accept identifier as string and return md5 hash of str identifier."""
     if type(text) is not str:
         raise TypeError(f"Requires 'str' input, but received {text}({type(text)})")
 
     # strip end chars and encode
     text = text.strip().encode()
-    full_hash = hashlib.sha256(text).hexdigest()
+    full_hash = hashlib.md5(text).hexdigest()
     short_hash = full_hash[0:num_chars]
 
     return full_hash, short_hash
@@ -78,14 +78,14 @@ def encode_all(
     full_hash_list = []
     short_hash_list = []
     for file in tqdm(filepath_list):
-        id, new_filename, full_hash, short_hash = encode_single(
+        specimen_id, new_filename, full_hash, short_hash = encode_single(
             file,
             pattern,
             output_dir=output_dir,
             ignore_case=ignore_case,
             num_chars=num_chars,
         )
-        id_list.append(id)
+        id_list.append(specimen_id)
         new_filepath_list.append(str(new_filename))
         full_hash_list.append(str(full_hash))
         short_hash_list.append(str(short_hash))
