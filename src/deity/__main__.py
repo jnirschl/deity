@@ -49,19 +49,12 @@ def main(
     # convert extension string to list of extensions
     extension = extension.split(",")
 
-    # set output directory to input directory if not specified
-    if output_dir is None:
-        output_dir = input_dir
-
     # set database path to input directory if not specified
     if database_file.parent == Path("."):
         database_file = input_dir.joinpath(database_file)
 
     # set column name
     column_name = "accession" if table_name == "specimens" else "mrn"
-
-    # set as pathlib.Path object
-    output_dir = Path(output_dir)
 
     # glob all files in input directory
     file_list = []

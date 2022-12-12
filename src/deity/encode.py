@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
-
+from typing import Union
 
 def encode(text: str, num_chars: int = 16) -> tuple:
     """Accept identifier as string and return md5 hash of str identifier."""
@@ -21,7 +21,7 @@ def encode(text: str, num_chars: int = 16) -> tuple:
 
 
 def encode_single(
-    filepath: str,
+    filepath: Union[str, Path],
     pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
     output_dir: str = None,
     ignore_case=re.IGNORECASE,
