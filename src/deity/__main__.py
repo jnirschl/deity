@@ -80,7 +80,7 @@ def main(
     if decode:
         # decode files
         logger.info(f"Decoding files from database {database_file.name}...")
-        decode_all(input_dir, database_file, table_name)
+        decode_all(database_file, table_name)
     else:
         # encode files
         logger.info(f"Encoding {extension} files to database {database_file.name}...")
