@@ -35,9 +35,9 @@ def decode_all(database_file: Path, table_name: str) -> None:
                 lambda row: row["filepath"].rename(row["old_filepath"]), axis=1
             )
         else:
-            logger.error(f"Some file(s) were not found{df_file_rename[~file_list_exists]}")
+            logger.error(f"File(s) not found: {df_file_rename[~file_list_exists]}")
             raise FileNotFoundError(
-                f"Some file(s) were not found: {df_file_rename[~file_list_exists]}"
+                f"File(s) not found: {df_file_rename[~file_list_exists]}"
             )
 
     except Exception as e:
