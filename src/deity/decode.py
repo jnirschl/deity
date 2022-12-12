@@ -28,10 +28,17 @@ def decode_all(database_file: Path, table_name: str) -> None:
     try:
         # rename files
         logger.info("Reverting files to original name...")
-        df_file_rename.apply(
-            lambda row: row["filepath"].rename(row["old_filepath"]), axis=1
-        )
-        print(df_file_rename)
+        file_list_exists = df_file_rename["filepath"].apply(Path.exists)
+
+        if file_list_exists.all():
+            df_file_rename.apply(
+                lambda row: row["filepath"].rename(row["old_filepath"]), axis=1
+            )
+        else:
+            logger.error(f"Some file(s) were not found{df_file_rename[~file_list_exists]}")
+            raise FileNotFoundError(
+                f"Some file(s) were not found: {df_file_rename[~file_list_exists]}"
+            )
 
     except Exception as e:
         logger.error(e)
