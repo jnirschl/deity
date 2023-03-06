@@ -23,6 +23,9 @@ from deity.encode import encode_all
 @click.option(
     "--extension", default="txt,jpg,png", type=click.STRING, help="Extensions"
 )
+@click.option(
+    "--pattern", default="[SL][HP][SDFNA]-\\d{2}-\\d{5}", type=click.STRING, help="Pattern"
+)
 @click.option("--decode", is_flag=True, help="Decode files instead of encoding")
 @click.option("--dry-run", is_flag=True, help="Dry run")
 @click.version_option()
@@ -66,8 +69,10 @@ def main(
     # check if files were found
     if len(file_list) == 0:
         raise FileNotFoundError(f"No {extension} files found in {input_dir}")
-    else:
-        logger.info(f"Found {len(file_list)} files in {input_dir}")
+    #else:
+        # filter files to only those that start with pattern
+        # file_list = [Path(f) for f in file_list if Path(f).name.startswith(pattern)]
+        # logger.info(f"Found {len(file_list)} files in {input_dir}")
 
     # encode/decode files
     if decode:
