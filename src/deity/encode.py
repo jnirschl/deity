@@ -2,10 +2,10 @@
 import hashlib
 import re
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 from tqdm import tqdm
-from typing import Union
 
 
 def encode(text: str, num_chars: int = 16) -> tuple:
