@@ -5,12 +5,16 @@ import logging
 from pathlib import Path
 
 import click
+import pkg_resources
 from dotenv import find_dotenv
 from dotenv import load_dotenv
 
 from deity import database
 from deity.decode import decode_all
 from deity.encode import encode_all
+
+
+__version__ = pkg_resources.get_distribution("deity").version
 
 
 @click.command()
@@ -31,7 +35,7 @@ from deity.encode import encode_all
 )
 @click.option("--decode", is_flag=True, help="Decode files instead of encoding")
 @click.option("--dry-run", is_flag=True, help="Dry run")
-@click.version_option()
+@click.version_option(__version__)
 def main(
     input_dir: Path,
     database_file: Path,
