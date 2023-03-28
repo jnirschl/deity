@@ -1,4 +1,8 @@
-"""Utilities for database creation and management."""
+#!/usr/bin/env python3
+"""utils.py in src/deity/database.
+
+Utilities for database creation and management.
+"""
 import sqlite3
 from pathlib import Path
 from sqlite3 import Error

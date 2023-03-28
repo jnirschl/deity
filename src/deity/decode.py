@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""decode.py in src/deity."""
+"""decode.py in src/deity.
+
+Helper functions to decode coded identifiers in a filename
+using data store in the SQLite database.
+"""
 from pathlib import Path
 
 import pandas as pd

@@ -1,4 +1,8 @@
-"""database module for deity."""
+#!/usr/bin/env python3
+"""__init__.py in src/deity/database.
+
+Utilities for database creation and management.
+"""
 __ALL__ = [
     "create_connection",
     "create_cursor",

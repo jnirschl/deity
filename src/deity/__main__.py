@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Command-line interface."""
+"""__main__.py in src/deity."""
 import glob
 from pathlib import Path
 
@@ -46,9 +46,9 @@ def main(
     decode: bool = False,
     dry_run: bool = False,
 ) -> None:
-    """Encode or decode files in a directory."""
+    """Command line interface to encode or decode files in a directory."""
     if dry_run:
-        logger.info("########## Dry run ##########")
+        logger.info("Dry run")
 
     # log input parameters
     logger.info(
@@ -142,7 +142,7 @@ def main(
 
 
 if __name__ == "__main__":
-    # find .env automagically by walking up directories until it's found, then
+    # find .env automatically by walking up directories until it's found, then
     # load up the .env entries as environment variables
     load_dotenv(find_dotenv())
 

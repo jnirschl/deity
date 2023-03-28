@@ -1,4 +1,8 @@
-"""Module to encode an identifier in a filename with short hash."""
+#!/usr/bin/env python3
+"""encde.py in src/deity.
+
+Helper functions to encode identifiers in a filename with an MD5 hash of the identifier.
+"""
 import hashlib
 import re
 from pathlib import Path
