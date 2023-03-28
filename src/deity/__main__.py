@@ -23,12 +23,8 @@ __version__ = pkg_resources.get_distribution("deity").version
 @click.argument("input-dir", type=click.Path(exists=True, path_type=Path))
 @click.argument("database-file", type=click.Path(path_type=Path))
 @click.argument("table-name", type=click.STRING)
-@click.option(
-    "--output-dir", default=None, type=click.Path(path_type=Path)
-)
-@click.option(
-    "--extension", default="txt,jpg,png", type=click.STRING, help="Extension"
-)
+@click.option("--output-dir", default=None, type=click.Path(path_type=Path))
+@click.option("--extension", default="txt,jpg,png", type=click.STRING, help="Extension")
 @click.option(
     "--pattern",
     default="[SL][HP][SDFNA]-\\d{2}-\\d{5}",
@@ -70,42 +66,25 @@ def main(
 
     # encode/decode files
     if decode:
-        # decode files
-        # logger.info(f"Decoding files from database {database_file.name}...")
         decode_all(database_file, table_name)
     else:
-        # encode files
-        # logger.info(f"Encoding {extension} files to database {database_file.name}...")
         df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
 
         # create dataframe for file renaming and sql export
         df_file_rename, df_sql = create_df_sql(df, table_name)
 
         # connect to database or create if it doesn't exist
-        if not database_file.exists():
+        if not dry_run and not database_file.exists():
             logger.info(f"Creating {database_file}")
-        conn = database.create_connection(database_file)
 
-        try:
-            if not dry_run:
-                # update database, fail if table already exists
-                if len(df_sql) > 0:
-                    logger.info("Updating database...")
-                    df_sql.to_sql(
-                        table_name, conn, if_exists="append", index_label="id"
-                    )
-                    csv_filename = database_file.with_name(
-                        f"{database_file.name}_{table_name}.csv"
-                    )
-                    df_sql.to_csv(csv_filename, index=False)
+            conn = database.create_connection(database_file)
 
-                if len(df_file_rename) > 0:
-                    rename_files(df_file_rename)
-        except Exception as e:
-            logger.error(e)
-            raise e
-        finally:
-            conn.close()
+            database.create_update_sql(
+                df_sql, table_name, conn, output_file=database_file
+            )
+
+            if len(df_file_rename) > 0:
+                rename_files(df_file_rename)
 
 
 if __name__ == "__main__":

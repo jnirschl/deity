@@ -29,14 +29,7 @@ def runner() -> CliRunner:
 class TestMain:
     """Class for testing main module functions."""
 
-    def test_main_dry_run(
-        self,
-        runner,
-        temp_dir,
-        tmp_db,
-        table,
-        test_files,
-    ) -> None:
+    def test_main_dry_run(self, runner, temp_dir, tmp_db, table, test_files) -> None:
         """Perform a dry run and check that no files are renamed."""
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--dry-run"])
         assert result.exit_code == 0, f"Error: {result.exception}"

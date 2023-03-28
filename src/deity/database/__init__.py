@@ -8,8 +8,10 @@ __ALL__ = [
     "create_cursor",
     "execute_query",
     "close_connection",
+    "create_update_sql",
 ]
 
+from deity.database.create_update_sql import create_update_sql
 from deity.database.utils import close_connection
 from deity.database.utils import create_connection
 from deity.database.utils import create_cursor
