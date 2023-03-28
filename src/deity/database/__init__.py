@@ -6,7 +6,7 @@ __ALL__ = [
     "close_connection",
 ]
 
-from .utils import close_connection
-from .utils import create_connection
-from .utils import create_cursor
-from .utils import execute_query
+from deity.database.utils import close_connection
+from deity.database.utils import create_connection
+from deity.database.utils import create_cursor
+from deity.database.utils import execute_query
