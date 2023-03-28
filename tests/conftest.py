@@ -23,18 +23,23 @@ def temp_dir(tmp_path_factory, test_files) -> str:
 
 
 @pytest.fixture()
-def test_files(num_test_cases: str = 10) -> List[str]:
+def suffix_list() -> List[str]:
+    """Fixture for a random list of three file extensions."""
+    return random.sample(["png", "jpg", "txt", "pdf", "tif", "tiff"], 3)
+
+
+@pytest.fixture()
+def test_files(suffix_list: list, num_test_cases: str = 10) -> List[str]:
     """Fixture to generate test filename combinations."""
     prefix = ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
-    suffix = ["jpg", "png", "tif", "tiff", "txt"]
     temp_filenames = [
         (
             f"{random.choice(prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}_"
             f"part-{random.choice(string.ascii_uppercase)}_diagnosis_"
             f"{np.random.randint(40):02d}x_{np.random.randint(999):03d}"
-            f".{random.choice(suffix)}"
+            f".{random.choice(suffix_list)}"
         )
-        for elem in range(num_test_cases)
+        for _elem in range(num_test_cases)
     ]
     return temp_filenames
 

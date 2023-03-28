@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Tests for src/deity/__main__.py."""
 import random
 import traceback
@@ -25,7 +26,6 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-# TODO fix pytest duplicate temp directories
 class TestMain:
     """Class for testing main module functions."""
 
@@ -47,6 +47,20 @@ class TestMain:
                 )
         else:
             traceback.print_tb(result.exc_info[2])
+
+    def test_main_database_creation(self, runner, temp_dir, table, test_files) -> None:
+        """Test if the database is created if it doesn't exist."""
+        # Prepare a new non-existent database file path
+        non_existent_db = Path(temp_dir).joinpath("non_existent.db")
+
+        # Run the main function
+        result = runner.invoke(main, [temp_dir, non_existent_db.as_posix(), table])
+        assert result.exit_code == 0, f"Error: {result.exception}"
+
+        # Check if the new database file is created
+        assert non_existent_db.exists(), FileNotFoundError(
+            f"{non_existent_db} was expected to be created but not found"
+        )
 
     @pytest.mark.xfail(
         reason="TODO: flaky test with occasional no files found with ext. Need to fix"

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """__main__.py in src/deity."""
-import glob
 from pathlib import Path
 
 import click
@@ -12,6 +11,9 @@ from loguru import logger
 from deity import database
 from deity.decode import decode_all
 from deity.encode import encode_all
+from deity.utils import create_df_sql
+from deity.utils import get_file_list
+from deity.utils import rename_files
 
 
 __version__ = pkg_resources.get_distribution("deity").version
@@ -19,13 +21,13 @@ __version__ = pkg_resources.get_distribution("deity").version
 
 @click.command()
 @click.argument("input-dir", type=click.Path(exists=True, path_type=Path))
-@click.argument("database-file", type=click.Path(exists=True, path_type=Path))
+@click.argument("database-file", type=click.Path(path_type=Path))
 @click.argument("table-name", type=click.STRING)
 @click.option(
-    "--output-dir", default=None, type=click.Path(exists=True, path_type=Path)
+    "--output-dir", default=None, type=click.Path(path_type=Path)
 )
 @click.option(
-    "--extension", default="txt,jpg,png", type=click.STRING, help="Extensions"
+    "--extension", default="txt,jpg,png", type=click.STRING, help="Extension"
 )
 @click.option(
     "--pattern",
@@ -55,63 +57,35 @@ def main(
         f"{'Decoding' if decode else 'Encoding'} files with ext {extension} in {input_dir}"
     )
 
-    # convert extension string to list of extensions
-    extension = extension.split(",")
-
     # set database path to input directory if not specified
-    # TODO: add ability to create database if it doesn't exist
     if database_file.parent == Path("."):
         database_file = input_dir.joinpath(database_file)
 
-    # set column name
-    column_name = "accession" if table_name == "specimens" else "mrn"
-
     # glob all files in input directory
-    file_list = []
-    for ext in extension:
-        # get files with extension recursively and add to list
-        search_path = str(input_dir.joinpath(f"**/*.{ext}"))
-        file_list.extend(glob.glob(search_path, recursive=True))
+    file_list = get_file_list(input_dir, extension)
 
     # check if files were found
     if len(file_list) == 0:
         raise FileNotFoundError(f"No {extension} files found in {input_dir}")
-    # else:
-    # filter files to only those that start with pattern
-    # file_list = [Path(f) for f in file_list if Path(f).name.startswith(pattern)]
-    # logger.info(f"Found {len(file_list)} files in {input_dir}")
 
     # encode/decode files
     if decode:
         # decode files
-        logger.info(f"Decoding files from database {database_file.name}...")
+        # logger.info(f"Decoding files from database {database_file.name}...")
         decode_all(database_file, table_name)
     else:
         # encode files
-        logger.info(f"Encoding {extension} files to database {database_file.name}...")
+        # logger.info(f"Encoding {extension} files to database {database_file.name}...")
         df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
 
-        # create dataframe for renaming files
-        df_file_rename = df[["old_filepath", "new_filepath"]].copy()
+        # create dataframe for file renaming and sql export
+        df_file_rename, df_sql = create_df_sql(df, table_name)
 
-        # rename columns
-        df_sql = df.rename(
-            columns={
-                "identifier": f"{column_name}",
-                "short_hash": f"{column_name}_short_hash",
-                "full_hash": f"{column_name}_full_hash",
-                "new_filepath": "filepath",
-            }
-        )
-
-        # convert old_filepath from Path to str
-        df_sql["old_filepath"] = df_sql["old_filepath"].astype(str)
-
-        # connect to database
+        # connect to database or create if it doesn't exist
+        if not database_file.exists():
+            logger.info(f"Creating {database_file}")
         conn = database.create_connection(database_file)
 
-        # TODO: reorganize try/except/finally block to specifically
-        #  catch lines that can fail (too long of block right now)
         try:
             if not dry_run:
                 # update database, fail if table already exists
@@ -125,15 +99,8 @@ def main(
                     )
                     df_sql.to_csv(csv_filename, index=False)
 
-                    # rename files
-                    logger.info("Renaming files...")
-                    df_file_rename.apply(
-                        lambda row: row["old_filepath"].rename(row["new_filepath"]),
-                        axis=1,
-                    )
-                else:
-                    logger.info(f"No {extension} files found in {input_dir}")
-
+                if len(df_file_rename) > 0:
+                    rename_files(df_file_rename)
         except Exception as e:
             logger.error(e)
             raise e
