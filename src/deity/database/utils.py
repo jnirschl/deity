@@ -1,19 +1,15 @@
 """Utilities for database creation and management."""
-import logging
 import sqlite3
 from pathlib import Path
 from sqlite3 import Error
 
-
-log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-logging.basicConfig(level=logging.INFO, format=log_fmt)
+from loguru import logger
 
 
 def create_connection(db_file, verbose=False) -> sqlite3.Connection:
     """Wrapper for sqlite3.connect()."""
     conn = None
 
-    logger = logging.getLogger(__name__)
     if verbose:
         if Path(db_file).exists():
             logger.info(f"Connecting to {db_file}")
@@ -48,7 +44,7 @@ def execute_query(conn, query, records=None) -> list:
         results = cur.fetchall()
     except Error as e:
         cur.close()
-        logging.error(f"Error executing query: {e}")
+        logger.error(f"Error executing query: {e}")
         raise e
 
     return results

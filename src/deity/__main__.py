@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Command-line interface."""
 import glob
-import logging
 from pathlib import Path
 
 import click
 import pkg_resources
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from loguru import logger
 
 from deity import database
 from deity.decode import decode_all
@@ -47,7 +47,6 @@ def main(
     dry_run: bool = False,
 ) -> None:
     """Encode or decode files in a directory."""
-    logger = logging.getLogger(__name__)
     if dry_run:
         logger.info("########## Dry run ##########")
 
@@ -60,6 +59,7 @@ def main(
     extension = extension.split(",")
 
     # set database path to input directory if not specified
+    # TODO: add ability to create database if it doesn't exist
     if database_file.parent == Path("."):
         database_file = input_dir.joinpath(database_file)
 
@@ -110,6 +110,8 @@ def main(
         # connect to database
         conn = database.create_connection(database_file)
 
+        # TODO: reorganize try/except/finally block to specifically
+        #  catch lines that can fail (too long of block right now)
         try:
             if not dry_run:
                 # update database, fail if table already exists
@@ -140,9 +142,6 @@ def main(
 
 
 if __name__ == "__main__":
-    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
-
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
     load_dotenv(find_dotenv())

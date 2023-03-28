@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """decode.py in src/deity."""
-import logging
 from pathlib import Path
 
 import pandas as pd
+from loguru import logger
 
 from deity import database
 
 
 def decode_all(database_file: Path, table_name: str) -> None:
     """Decode files in input_dir using database_file and table_name."""
-    logger = logging.getLogger(__name__)
-
     # connect to database
     conn = database.create_connection(database_file)
 
