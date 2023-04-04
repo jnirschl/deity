@@ -41,6 +41,18 @@ def test_files(suffix_list: list, num_test_cases: str = 10) -> List[str]:
         )
         for _elem in range(num_test_cases)
     ]
+
+    # add new test cases with different prefixes
+    new_prefix = ["SA", "SC", "SR", "SP"]
+    temp_filenames.extend(
+        [
+            f"{random.choice(new_prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e5):06d}_"
+            f"part-{random.choice(string.ascii_uppercase)}_diagnosis_"
+            f"{np.random.randint(40):02d}x_{np.random.randint(999):03d}"
+            f".{random.choice(suffix_list)}"
+            for _elem in range(num_test_cases)
+        ]
+    )
     return temp_filenames
 
 
