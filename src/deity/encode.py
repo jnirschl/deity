@@ -11,6 +11,8 @@ from typing import Union
 import pandas as pd
 from tqdm import tqdm
 
+from deity.utils import DEFAULT_PATTERN
+
 
 def encode(text: str, num_chars: int = 16) -> tuple:
     """Accept identifier as string and return md5 hash of str identifier."""
@@ -27,7 +29,7 @@ def encode(text: str, num_chars: int = 16) -> tuple:
 
 def encode_single(
     filepath: Union[str, Path],
-    pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
+    pattern: str = DEFAULT_PATTERN,
     output_dir: str = None,
     ignore_case=re.IGNORECASE,
     num_chars: int = 16,
@@ -63,7 +65,7 @@ def encode_single(
 
 def encode_all(
     filepath_list: list,
-    pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
+    pattern: str = DEFAULT_PATTERN,
     output_dir: str = None,
     ignore_case: bool = re.IGNORECASE,
     num_chars: int = 16,
