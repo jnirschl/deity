@@ -60,7 +60,7 @@ def create_df_sql(
 
 
 def find_existing_file(path: Path, extensions: str) -> Path:
-    """Find existing file with alternate extension."""
+    """Find existing file with alternate extension, if it exists."""
     if not path.exists():
         for ext in extensions.split(","):
             new_path = path.with_suffix(f".{ext.strip()}")
