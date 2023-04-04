@@ -3,20 +3,18 @@
 from pathlib import Path
 
 import click
-import pkg_resources
 from dotenv import find_dotenv
 from dotenv import load_dotenv
 from loguru import logger
 
+from deity import __version__
 from deity import database
 from deity.decode import decode_all
 from deity.encode import encode_all
+from deity.utils import DEFAULT_PATTERN
 from deity.utils import create_df_sql
 from deity.utils import get_file_list
 from deity.utils import rename_files
-
-
-__version__ = pkg_resources.get_distribution("deity").version
 
 
 @click.command()
@@ -27,7 +25,7 @@ __version__ = pkg_resources.get_distribution("deity").version
 @click.option("--extension", default="txt,jpg,png", type=click.STRING, help="Extension")
 @click.option(
     "--pattern",
-    default="[SL][HP][SDFNA]-\\d{2}-\\d{5}",
+    default=DEFAULT_PATTERN,
     type=click.STRING,
     help="Pattern",
 )
@@ -40,7 +38,7 @@ def main(
     table_name: str,
     output_dir: str = None,
     extension: str = "txt,jpg,png",
-    pattern: str = "[SL][HP][SDFNA]-\\d{2}-\\d{5}",
+    pattern: str = DEFAULT_PATTERN,
     decode: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -53,8 +51,12 @@ def main(
         f"{'Decoding' if decode else 'Encoding'} files with ext {extension} in {input_dir}"
     )
 
+    # database must exist if decoding
+    if decode and not database_file.exists():
+        raise FileNotFoundError(f"Database {database_file} does not exist")
+
     # set database path to input directory if not specified
-    if database_file.parent == Path("."):
+    if database_file.parent == Path(".") and not dry_run:
         database_file = input_dir.joinpath(database_file)
 
     # glob all files in input directory
@@ -66,7 +68,7 @@ def main(
 
     # encode/decode files
     if decode:
-        decode_all(database_file, table_name)
+        decode_all(database_file, table_name, extension=extension, dry_run=dry_run)
     else:
         df = encode_all(file_list, pattern=pattern, output_dir=output_dir)
 

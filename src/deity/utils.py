@@ -9,6 +9,9 @@ import pandas as pd
 from loguru import logger
 
 
+DEFAULT_PATTERN = "[SL]([A-Z][SDFNA]?)-\\d{2}-\\d{5,6}"
+
+
 def get_file_list(input_dir: Path, extension: str = "txt,jpg,png") -> list:
     """Get list of files in input directory with specified extensions."""
     # convert extension string to list of extensions
@@ -54,3 +57,13 @@ def create_df_sql(
     df_sql["old_filepath"] = df_sql["old_filepath"].astype(str)
 
     return df_file_rename, df_sql
+
+
+def find_existing_file(path: Path, extensions: str) -> Path:
+    """Find existing file with alternate extension."""
+    if not path.exists():
+        for ext in extensions.split(","):
+            new_path = path.with_suffix(f".{ext.strip()}")
+            if new_path.exists():
+                return new_path
+    return path
