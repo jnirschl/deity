@@ -18,7 +18,9 @@ from deity.utils import rename_files
 
 
 @click.command()
-@click.argument("input-dir", type=click.Path(exists=True, path_type=Path))
+@click.argument(
+    "input-dir", type=click.Path(exists=True, path_type=Path, resolve_path=True)
+)
 @click.argument("database-file", type=click.Path(path_type=Path))
 @click.argument("table-name", type=click.STRING)
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
@@ -46,11 +48,6 @@ def main(
     if dry_run:
         logger.info("Dry run")
 
-    # log input parameters
-    logger.info(
-        f"{'Decoding' if decode else 'Encoding'} files with ext {extension} in {input_dir}"
-    )
-
     # database must exist if decoding
     if decode and not database_file.exists():
         raise FileNotFoundError(f"Database {database_file} does not exist")
@@ -65,6 +62,12 @@ def main(
     # check if files were found
     if len(file_list) == 0:
         raise FileNotFoundError(f"No {extension} files found in {input_dir}")
+    else:
+        # log input parameters
+        logger.info(
+            f"{'Decoding' if decode else 'Encoding'} {len(file_list)} "
+            f"files with ext {extension} in {input_dir}"
+        )
 
     # encode/decode files
     if decode:
