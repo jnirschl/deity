@@ -24,7 +24,7 @@ from deity.utils import rename_files
 @click.argument("database-file", type=click.Path(path_type=Path))
 @click.argument("table-name", type=click.STRING)
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
-@click.option("--extension", default="txt,jpg,png", type=click.STRING, help="Extension")
+@click.option("--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension")
 @click.option(
     "--pattern",
     default=DEFAULT_PATTERN,
