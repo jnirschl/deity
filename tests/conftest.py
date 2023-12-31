@@ -1,4 +1,5 @@
-"""Configure shared fixtures for tests."""
+#!/usr/bin/env python3
+"""Configure shared fixtures for deity."""
 import random
 import sqlite3
 import string

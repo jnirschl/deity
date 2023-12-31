@@ -45,6 +45,7 @@ coverage.xml
 *.cover
 .python-version
 .pytype/
+.pytest_cache
 
 # Translations
 *.mo
@@ -67,7 +68,7 @@ target/
 *.rdb
 
 # Pycharm
-.idea
+*.idea/*
 
 # VS Code
 .vscode/
@@ -88,13 +89,13 @@ target/
 # Mypy cache
 .mypy_cache/
 
-# emacs
-*~
-*.org
-#*#
+# emacs backup and autosave files
+/**/*~
+/**/*#
 
-# venv
-/venv/
+# venv and pyenv
+venv/
+.python-version
 
 # exclude data, logs, models, and results from source control by default
 /logs/
@@ -107,3 +108,11 @@ target/
 *.out
 *.err
 slurm*.out
+
+# ssh keys
+.key
+.pem
+.pub
+
+# gpg files
+*.gpg

@@ -1,14 +1,21 @@
 pull_request_rules:
-  - name: Automatic merge on approval
-    conditions:
-      - "#approved-reviews-by>=1"
-    actions:
-      merge:
-        method: merge
-  - name: automatic merge for Dependabot pull requests
-    conditions:
-      - author=dependabot[bot]
-      - title~=(^(build|chore|dev)\(deps\):\s+[B|b]ump [^\s]+ from ([\d]+)\..+ to \d+)|(^Bump [^\s]+ from ([\d]+)\..+ to \1\.)
-    actions:
-      merge:
-        method: merge
+    - name: Automatic merge on approval
+      conditions:
+          - '#approved-reviews-by>=1'
+      actions:
+          merge:
+              method: merge
+    - name: automatic merge for Dependabot pull requests
+      conditions:
+          - author=dependabot[bot]
+          - title~=(^(chore\(deps(-dev)?\)):\s+(Bump|bump|add)\s+([^\s]+)(\s+from\s+[\d\.]+(\s+in\s+\/\.github\/workflows)?\s+to\s+[\d\.]+)?)
+      actions:
+          merge:
+              method: merge
+    - name: automatic merge for Dependabot bumps
+      conditions:
+          - author=dependabot[bot]
+          - title~=(^(Bump|bump) [^\\s]+ from [\\d]+(?:\\.[\\d]+)* to [\\d]+(?:\\.[\\d]+)*( in (?:/\\.github/workflow|/\\.github/workflows|/docs))?$)
+      actions:
+          merge:
+              method: merge
