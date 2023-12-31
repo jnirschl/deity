@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from deity import encode_single
-from deity import main
+from deity.__main__ import main
+from deity.encode import encode_single
 
 
 EXT_LIST = ["png", "jpg", "txt", ".pdf", ".tif", ".tiff"]
@@ -34,10 +34,9 @@ class TestMain:
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--dry-run"])
         assert result.exit_code == 0, f"Error: {result.exception}"
         if result.exit_code == 0:
-            for elem in test_files:
-                assert Path(temp_dir).joinpath(elem).exists(), FileNotFoundError(
-                    f"{elem} not found"
-                )
+            for file in test_files:
+                filepath = Path(temp_dir).joinpath(file)
+                assert filepath.exists(), FileNotFoundError(f"{file} not found")
         else:
             traceback.print_tb(result.exc_info[2])
 

@@ -9,9 +9,9 @@ from typing import List
 import numpy as np
 import pytest
 
-from src.deity.database import close_connection
-from src.deity.database import create_connection
-from src.deity.database import execute_query
+from deity.database import close_connection
+from deity.database import create_connection
+from deity.database import execute_query
 
 
 @pytest.fixture()

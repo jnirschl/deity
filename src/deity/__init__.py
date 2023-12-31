@@ -1,16 +1,16 @@
 """DeITy: De Identification Toolkit."""
-__all__ = ["encode", "encode_single", "encode_single", "main"]
-__version__ = "0.1.0"
+from importlib import metadata
 
 from loguru import logger
 from rich.console import Console
 from rich.logging import RichHandler
 
-from deity.__main__ import main
 from deity.encode import encode
 from deity.encode import encode_all
 from deity.encode import encode_single
 
+
+__version__ = metadata.version(__package__)
 
 logger.configure(
     handlers=[
@@ -24,3 +24,4 @@ logger.configure(
         }
     ]
 )
+del metadata  # optional, avoids polluting the results of dir(__package__)

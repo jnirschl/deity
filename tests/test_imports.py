@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 """test_imports.py in tests."""
 
-import pkg_resources
+from importlib import metadata
+
+import pytest
+
+import deity
 
 
-__version__ = pkg_resources.get_distribution("deity").version
+@pytest.fixture(scope="session")  # type: ignore
+def current_version():
+    return metadata.version("deity")
 
 
-class SmokeTest:
-    """Class for testing basic functionality."""
+@pytest.mark.smoke
+def test_import():
+    """Test imports."""
+    import deity  # noqa: F401
+    from deity import encode  # noqa: F401
+    from deity import encode_all  # noqa: F401
+    from deity import encode_single  # noqa: F401
+    from deity.database import create_connection  # noqa: F401
+    from deity.database import create_cursor  # noqa: F401
+    from deity.database import create_db  # noqa: F401
+    from deity.database import execute_query  # noqa: F401
 
-    def test_import(self):
-        """Test import."""
-        import deity  # noqa: F401
-        from deity import encode  # noqa: F401
-        from deity import encode_all  # noqa: F401
-        from deity import encode_single  # noqa: F401
 
-    def test_version(self):
-        """Test version."""
-        import deity
-
-        assert deity.__version__ == "0.0.1"
+def test_version(current_version):
+    """Test version."""
+    assert deity.__version__ == current_version
