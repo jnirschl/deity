@@ -29,12 +29,12 @@ alphanumeric identifier.
 
 ## Features
 
-- De-identify files containing sensitive identifiers and replace with a hashed identifier
-- Stores the mapping of identifiers to hashed identifiers in a SQLite database.
+-   De-identify files containing sensitive identifiers and replace with a hashed identifier
+-   Stores the mapping of identifiers to hashed identifiers in a SQLite database.
 
 ## Requirements
 
-- See pyproject.toml
+-   See pyproject.toml
 
 ## Installation
 
