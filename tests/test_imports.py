@@ -22,7 +22,7 @@ def test_import():
     from deity import encode_single  # noqa: F401
     from deity.database import create_connection  # noqa: F401
     from deity.database import create_cursor  # noqa: F401
-    from deity.database import create_db  # noqa: F401
+    from deity.database import create_update_sql  # noqa: F401
     from deity.database import execute_query  # noqa: F401
 
 

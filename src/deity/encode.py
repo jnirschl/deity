@@ -22,7 +22,7 @@ def encode(text: str, num_chars: int = 16) -> tuple:
     # strip end chars and encode
     text = text.strip().encode()
     full_hash = hashlib.md5(text, usedforsecurity=False).hexdigest()
-    short_hash = full_hash[0:num_chars]
+    short_hash = full_hash[:num_chars]
 
     return full_hash, short_hash
 

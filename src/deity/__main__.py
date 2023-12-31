@@ -24,7 +24,9 @@ from deity.utils import rename_files
 @click.argument("database-file", type=click.Path(path_type=Path))
 @click.argument("table-name", type=click.STRING)
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
-@click.option("--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension")
+@click.option(
+    "--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension"
+)
 @click.option(
     "--pattern",
     default=DEFAULT_PATTERN,
@@ -45,8 +47,7 @@ def main(
     dry_run: bool = False,
 ) -> None:
     """Command line interface to encode or decode files in a directory."""
-    if dry_run:
-        logger.info("Dry run")
+    logger.info("Dry run") if dry_run else None
 
     # database must exist if decoding
     if decode and not database_file.exists():
