@@ -60,6 +60,13 @@ repos:
             language: system
             types: [text]
             stages: [commit, push, manual]
+          - id: tests
+            name: Run tests
+            entry: pytest
+            language: system
+            types: [python]
+            args: [--cov=src, --cov-report=term-missing]
+            stages: [commit, push, manual]
     - repo: https://github.com/pre-commit/mirrors-prettier
       rev: v2.6.0
       hooks:
