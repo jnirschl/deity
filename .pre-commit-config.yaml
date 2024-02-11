@@ -1,71 +1,105 @@
+ci:
+    autofix_prs: true
+    autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+    autoupdate_schedule: 'weekly'
+default_language_version:
+    python: python3
 repos:
-    - repo: local
+    - repo: https://github.com/psf/black
+      rev: 23.12.1
       hooks:
           - id: black
-            name: black
-            entry: black
-            language: system
-            types: [python]
+            args: [--safe, --quiet, -l 99]
+
+    - repo: https://github.com/pycqa/isort
+      rev: 5.11.2
+      hooks:
+          - id: isort
+            name: isort (python)
+            entry: isort
             require_serial: true
+            language: system
+            types_or: [cython, pyi, python]
+            args: ['--filter-files', --profile=black, -l=99]
+
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.5.0
+      hooks:
           - id: check-added-large-files
-            name: Check for added large files
-            entry: check-added-large-files
-            language: system
+          - id: check-ast
+          - id: check-json
           - id: check-toml
-            name: Check Toml
-            entry: check-toml
-            language: system
-            types: [toml]
           - id: check-yaml
-            name: Check Yaml
-            entry: check-yaml
+          - id: sort-simple-yaml
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: mixed-line-ending
+          - id: debug-statements
+            exclude: _pytest/(debugging|hookspec).py
+            language_version: python3
+          - id: name-tests-test
+            args: [--pytest-test-first]
+            exclude: _pytest/(debugging|hookspec).py
+            language_version: python3
+
+    - repo: https://github.com/PyCQA/flake8
+      rev: 6.1.0
+      hooks:
+          - id: flake8
+            args: [-j8, --max-line-length=99, --extend-ignore=P1]
+            additional_dependencies:
+                - flake8-bugbear
+                - flake8-comprehensions
+                - flake8-debugger
+                - flake8-string-format
+
+    #    - repo: https://github.com/hhatto/autopep8
+    #      rev: v2.0.4
+    #      hooks:
+    #          - id: autopep8
+
+    #    - repo: https://github.com/pre-commit/mirrors-mypy
+    #      rev: v1.8.0
+    #      hooks:
+    #          - id: mypy
+    #            additional_dependencies: [types-all]
+
+    - repo: https://github.com/asottile/pyupgrade
+      rev: v3.15.0
+      hooks:
+          - id: pyupgrade
+            args: [--py38-plus]
+
+    - repo: local
+      hooks:
+          - id: pytest-changed-files
+            name: pytest-changed-files
+            entry: pytest
+            files: tests/.*\btest_\w*.py
+            require_serial: true
             language: system
-            types: [yaml]
+            stages: [commit, push, manual]
+
           - id: darglint
             name: darglint
             entry: darglint
             language: system
             types: [python]
             stages: [manual]
-          - id: end-of-file-fixer
-            name: Fix End of Files
-            entry: end-of-file-fixer
-            language: system
-            types: [text]
-            stages: [commit, push, manual]
-          - id: flake8
-            name: flake8
-            entry: flake8
-            language: system
-            types: [python]
-            require_serial: true
-            args: [--darglint-ignore-regex, .*]
-          - id: isort
-            name: isort
-            entry: isort
-            require_serial: true
-            language: system
-            types_or: [cython, pyi, python]
-            args: ['--filter-files']
-          - id: pyupgrade
-            name: pyupgrade
-            description: Automatically upgrade syntax for newer versions.
-            entry: pyupgrade
-            language: system
-            types: [python]
-            args: [--py37-plus]
-          - id: trailing-whitespace
-            name: Trim Trailing Whitespace
-            entry: trailing-whitespace-fixer
-            language: system
-            types: [text]
-            stages: [commit, push, manual]
-          - id: tests
-            name: Run tests
-            entry: pytest
-            language: system
-            types: [python]
-            stages: [commit, push, manual]
+    #          - id: flake8
+    #            name: flake8
+    #            entry: flake8
+    #            language: system
+    #            types: [python]
+    #            require_serial: true
+    #            args: [--darglint-ignore-regex, .*]
+    #        - id: tests
+    #          name: Run tests
+    #          entry: pytest
+    #          language: system
+    #          types: [python]
+    #          stages: [commit, push, manual]
+
     - repo: https://github.com/pre-commit/mirrors-prettier
       rev: v2.6.0
       hooks:

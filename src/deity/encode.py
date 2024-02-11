@@ -16,7 +16,7 @@ from deity.utils import DEFAULT_PATTERN
 
 def encode(text: str, num_chars: int = 16) -> tuple:
     """Accept identifier as string and return md5 hash of str identifier."""
-    if type(text) is not str:
+    if not isinstance(text, str):
         raise TypeError(f"Requires 'str' input, but received {text}({type(text)})")
 
     # strip end chars and encode
@@ -71,7 +71,7 @@ def encode_all(
     num_chars: int = 16,
 ) -> pd.DataFrame:
     """Accept filepath and return new filepath with encoded identifier."""
-    if type(filepath_list) is not list:
+    if not isinstance(filepath_list, list):
         raise TypeError(
             f"Requires 'list' input, but received {filepath_list} ({type(filepath_list)})"
         )
