@@ -62,7 +62,7 @@ jobs:
               print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
 
       - name: Cache virtual environments
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: venv-${{ hashFiles('poetry.lock') }}
@@ -89,7 +89,7 @@ jobs:
           print("::set-output name=result::{}".format(result))
 
       - name: Restore pre-commit cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         if: matrix.session == 'pre-commit'
         with:
           path: ~/.cache/pre-commit
@@ -138,7 +138,7 @@ jobs:
           pip --version
 
       - name: Cache virtual environments
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: venv-${{ hashFiles('poetry.lock') }}
