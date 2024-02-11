@@ -2,9 +2,13 @@
 name: Tests
 
 on:
-  - workflow_dispatch # manual trigger
-  - pull_request # run on pull requests
-#  - push # run on push
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+#  push:
+#    branches:
+#      - main
 
 jobs:
   tests:
@@ -35,43 +39,47 @@ jobs:
 
     steps:
       - name: Check out the repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python }}
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+          cache: "pip"
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+        id: install-poetry
+        uses: snok/install-poetry@v1.3.4
         with:
-          poetry-version: ${{ matrix.poetry-version }}
+          version: ${{ matrix.poetry-version }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true # if true, create .venv in project root; else create virtualenvs in {cache-dir}/virtualenvs
+          installer-parallel: true
 
       - name: Upgrade pip
+        id: upgrade-pip
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
 
-      - name: Upgrade pip in virtual environments
-        shell: python
-        run: |
-          import os
-          import pip
-
-          with open(os.environ["GITHUB_ENV"], mode="a") as io:
-              print(f"VIRTUALENV_PIP={pip.__version__}", file=io)
-
-      - name: Cache virtual environments
-        uses: actions/cache@v3.3.2
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-
       - name: Install Nox
+        id: install-nox
         run: |
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt nox
           pipx inject --pip-args=--constraint=.github/workflows/constraints.txt nox nox-poetry
           nox --version
+
+      - name: Cache Poetry virtual environments and pip cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./.venv
+            ./.nox/
+            ~/.local/
+          key: ${{ runner.os }}-nox-poetry-${{ matrix.python }}-${{ hashFiles('poetry.lock') }}
 
       - name: Compute pre-commit cache key
         if: matrix.session == 'pre-commit'
@@ -89,8 +97,9 @@ jobs:
           print("::set-output name=result::{}".format(result))
 
       - name: Restore pre-commit cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         if: matrix.session == 'pre-commit'
+        id: pre-commit-cache-restore
         with:
           path: ~/.cache/pre-commit
           key: ${{ steps.pre-commit-cache.outputs.result }}-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -98,11 +107,13 @@ jobs:
             ${{ steps.pre-commit-cache.outputs.result }}-
 
       - name: Run Nox
+        id: run-nox
         run: |
           nox --python=${{ matrix.python }}
 
       - name: Upload coverage data
         if: always() && matrix.session == 'tests'
+        id: upload-coverage-data
         uses: "actions/upload-artifact@v4"
         with:
           name: coverage-data
@@ -110,6 +121,7 @@ jobs:
 
       - name: Upload documentation
         if: matrix.session == 'docs-build'
+        id: upload-docs
         uses: actions/upload-artifact@v4
         with:
           name: docs
@@ -120,47 +132,66 @@ jobs:
     needs: tests
     steps:
       - name: Check out the repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version-file: '.python-version'
+          cache: "pip"
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+        id: install-poetry
+        uses: snok/install-poetry@v1.3.4
         with:
-          poetry-version: ${{ matrix.poetry-version }}
+          version: "1.6.1"
+          virtualenvs-create: true
+          virtualenvs-in-project: true  # if true, create .venv in project root;else create virtualenvs in {cache-dir}/virtualenvs
+          installer-parallel: true
 
       - name: Upgrade pip
+        id: upgrade-pip
         run: |
           pip install --constraint=.github/workflows/constraints.txt pip
           pip --version
 
-      - name: Cache virtual environments
-        uses: actions/cache@v3.3.2
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-
       - name: Install Nox
+        id: install-nox
         run: |
           pipx install --pip-args=--constraint=.github/workflows/constraints.txt nox
           pipx inject --pip-args=--constraint=.github/workflows/constraints.txt nox nox-poetry
           nox --version
 
+      - name: Cache Poetry virtual environments and pip cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./.venv
+            ./.nox/
+            ~/.local/
+          key: ${{ runner.os }}-poetry-${{ matrix.python }}-${{ hashFiles('poetry.lock') }}
+
       - name: Download coverage data
+        id: download-coverage
         uses: actions/download-artifact@v4
         with:
           name: coverage-data
 
       - name: Combine coverage data and display human readable report
+        id: combine-coverage
         run: |
           nox --session=coverage
 
       - name: Create coverage report
+        id: create-coverage-report
         run: |
           nox --session=coverage -- xml
 
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v3.1.4
+      - name: Upload coverage report to Codecov
+        id: upload-coverage-report
+        uses: codecov/codecov-action@v4.0.1
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
