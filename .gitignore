@@ -43,7 +43,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-.python-version
 .pytype/
 .pytest_cache
 
@@ -95,7 +94,6 @@ target/
 
 # venv and pyenv
 venv/
-.python-version
 
 # exclude data, logs, models, and results from source control by default
 /logs/
