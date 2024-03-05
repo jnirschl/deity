@@ -9,7 +9,10 @@ import pandas as pd
 from loguru import logger
 
 
-DEFAULT_PATTERN = "[SL]([A-Z][SDFNA]?)-\\d{2}-\\d{5,6}"
+DEFAULT_PATTERNS = [
+    "[SL]([A-Z]?[SDFNA]?)-\\d{2}-\\d{5,6}",
+    "[SL][AHP]-\\d{2}-\\d{5,6}",
+]
 
 
 def get_file_list(input_dir: Path, extension: str = "txt,jpg,png") -> list:
@@ -36,9 +39,7 @@ def rename_files(df_file_rename: pd.DataFrame) -> None:
     )
 
 
-def create_df_sql(
-    df: pd.DataFrame, table_name: str
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def create_df_sql(df: pd.DataFrame, table_name: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Create pandas DataFrame from SQL query."""
     df_file_rename = df[["old_filepath", "new_filepath"]].copy()
 

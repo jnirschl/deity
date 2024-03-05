@@ -11,25 +11,21 @@ from deity import __version__
 from deity import database
 from deity.decode import decode_all
 from deity.encode import encode_all
-from deity.utils import DEFAULT_PATTERN
+from deity.utils import DEFAULT_PATTERNS
 from deity.utils import create_df_sql
 from deity.utils import get_file_list
 from deity.utils import rename_files
 
 
 @click.command()
-@click.argument(
-    "input-dir", type=click.Path(exists=True, path_type=Path, resolve_path=True)
-)
+@click.argument("input-dir", type=click.Path(exists=True, path_type=Path, resolve_path=True))
 @click.argument("database-file", type=click.Path(path_type=Path))
 @click.argument("table-name", type=click.STRING)
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
-@click.option(
-    "--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension"
-)
+@click.option("--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension")
 @click.option(
     "--pattern",
-    default=DEFAULT_PATTERN,
+    default=DEFAULT_PATTERNS,
     type=click.STRING,
     help="Pattern",
 )
@@ -42,7 +38,7 @@ def main(
     table_name: str,
     output_dir: str = None,
     extension: str = "txt,jpg,png",
-    pattern: str = DEFAULT_PATTERN,
+    pattern: str = DEFAULT_PATTERNS,
     decode: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -85,9 +81,7 @@ def main(
 
             conn = database.create_connection(database_file)
 
-            database.create_update_sql(
-                df_sql, table_name, conn, output_file=database_file
-            )
+            database.create_update_sql(df_sql, table_name, conn, output_file=database_file)
 
             if len(df_file_rename) > 0:
                 rename_files(df_file_rename)

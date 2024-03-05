@@ -21,8 +21,7 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.fixture()
-def random_identifier():
+def identifier() -> str:
     """Fixture for a random identifier."""
     # create random identifier according to the pattern
     # [SL][AHP][SDFNA]?-\\d{2}-\\d{5}"
@@ -39,7 +38,11 @@ def random_identifier():
     return f"{prefix}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}"
 
 
-@pytest.fixture()
+def part() -> str:
+    """Fixture for a random part."""
+    return f"{random.choice(string.ascii_uppercase)}"
+
+
 def random_diagnosis():
     """Fixture for a random diagnosis."""
     return random.choice(
@@ -54,13 +57,27 @@ def suffix_list() -> List[str]:
 
 
 @pytest.fixture()
-def test_files(random_diagnosis: str, suffix_list: list, num_test_cases: str = 10) -> List[str]:
+def filename() -> str:
+    """Fixture for a random filename."""
+    ext = random.choice(["png", "jpg", "txt", "pdf", "tif"])
+    mag = random.choice([2, 5, 10, 20, 40])
+    return f"{identifier()}_{part()}_{random_diagnosis()}_{mag:02d}x_{np.random.randint(999):03d}.{ext}"
+
+
+@pytest.fixture()
+def filename_list() -> List[str]:
+    """Fixture for a list of random filenames."""
+    return [filename() for _ in range(10)]
+
+
+@pytest.fixture()
+def test_files(suffix_list: list, num_test_cases: str = 10) -> List[str]:
     """Fixture to generate test filename combinations."""
     prefix = ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
     temp_filenames = [
         (
             f"{random.choice(prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}_"
-            f"part-{random.choice(string.ascii_uppercase)}_{random_diagnosis}_"
+            f"part-{random.choice(string.ascii_uppercase)}_{random_diagnosis()}_"
             f"{np.random.randint(40):02d}x_{np.random.randint(999):03d}"
             f".{random.choice(suffix_list)}"
         )

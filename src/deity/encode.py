@@ -6,12 +6,13 @@ Helper functions to encode identifiers in a filename with an MD5 hash of the ide
 import hashlib
 import re
 from pathlib import Path
+from typing import Optional
 from typing import Union
 
 import pandas as pd
 from tqdm import tqdm
 
-from deity.utils import DEFAULT_PATTERN
+from deity.utils import DEFAULT_PATTERNS
 
 
 def encode(text: str, num_chars: int = 16) -> tuple:
@@ -29,14 +30,16 @@ def encode(text: str, num_chars: int = 16) -> tuple:
 
 def encode_single(
     filepath: Union[str, Path],
-    pattern: str = DEFAULT_PATTERN,
-    output_dir: str = None,
+    pattern: Union[str, list] = DEFAULT_PATTERNS,
+    output_dir: Optional[str] = None,
     ignore_case=re.IGNORECASE,
     num_chars: int = 16,
 ) -> tuple:
     """Accept filepath and return new filepath with encoded identifier."""
     # create Path object
     filepath = Path(filepath).resolve()
+
+    pattern = pattern if isinstance(pattern, list) else [pattern]
 
     # set output_dir to source filepath if not specified
     if output_dir is None or not Path(output_dir).exists():
@@ -45,11 +48,16 @@ def encode_single(
         output_dir = Path(output_dir)
 
     # compile regex to replace identifier
-    pattern_regex = re.compile(pattern, ignore_case)
+    for elem in pattern:
+        pattern_regex = re.compile(elem, flags=ignore_case)
 
-    # get identifier
-    match = pattern_regex.search(filepath.name)
+        match = pattern_regex.search(filepath.name)
+        # break on first match
+        if match:
+            break
+
     identifier = match[0] if match else None
+
     if match:
         full_hash, short_hash = encode(identifier, num_chars=num_chars)
         new_filename = pattern_regex.sub(short_hash, filepath.name)
@@ -65,7 +73,7 @@ def encode_single(
 
 def encode_all(
     filepath_list: list,
-    pattern: str = DEFAULT_PATTERN,
+    pattern: str = DEFAULT_PATTERNS,
     output_dir: str = None,
     ignore_case: bool = re.IGNORECASE,
     num_chars: int = 16,

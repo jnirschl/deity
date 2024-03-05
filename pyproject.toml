@@ -25,6 +25,7 @@ python-dotenv = "^0.20.0"
 tqdm = "^4.64.0"
 loguru = "^0.7.0"
 rich = "^13.7.0"
+segno = "^1.6.1"
 
 [tool.poetry.group.yubico]
 optional = true
