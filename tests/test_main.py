@@ -5,7 +5,6 @@ import traceback
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
 
 from deity.__main__ import main
 from deity.encode import encode_single
@@ -18,12 +17,6 @@ EXT_LIST = ["png", "jpg", "txt", ".pdf", ".tif", ".tiff"]
 def table() -> str:
     """Returns table name."""
     return "specimens"
-
-
-@pytest.fixture()
-def runner() -> CliRunner:
-    """Fixture for invoking command-line interfaces."""
-    return CliRunner()
 
 
 class TestMain:
@@ -71,9 +64,7 @@ class TestMain:
             for _ in range(10)
         ],
     )
-    def test_main_rename(
-        self, runner, temp_dir, tmp_db, table, test_files, ext
-    ) -> None:
+    def test_main_rename(self, runner, temp_dir, tmp_db, table, test_files, ext) -> None:
         """Run the program and check that all files are renamed."""
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--extension", ext])
         assert result.exit_code == 0, f"Error: {result.exception}"
@@ -110,9 +101,7 @@ class TestMain:
             for _ in range(10)
         ],
     )
-    def test_different_extensions(
-        self, runner, temp_dir, tmp_db, table, test_files, ext
-    ) -> None:
+    def test_different_extensions(self, runner, temp_dir, tmp_db, table, test_files, ext) -> None:
         """Run the program and check that only files matching the extension are renamed."""
         result = runner.invoke(main, [temp_dir, tmp_db, table, "--extension", ext])
         assert result.exit_code == 0, f"Error: {result.exception}"
@@ -140,8 +129,8 @@ class TestMain:
         if result.exit_code == 0:
             for elem in test_files:
                 _id, new_filepath, _, _ = encode_single(elem)
-                assert (
-                    Path(temp_dir).joinpath(new_filepath).exists()
-                ), FileNotFoundError(f"{new_filepath} was expected but not found")
+                assert Path(temp_dir).joinpath(new_filepath).exists(), FileNotFoundError(
+                    f"{new_filepath} was expected but not found"
+                )
         else:
             traceback.print_tb(result.exc_info[2])

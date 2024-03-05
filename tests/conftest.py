@@ -8,10 +8,17 @@ from typing import List
 
 import numpy as np
 import pytest
+from click.testing import CliRunner
 
 from deity.database import close_connection
 from deity.database import create_connection
 from deity.database import execute_query
+
+
+@pytest.fixture()
+def runner() -> CliRunner:
+    """Fixture for invoking command-line interfaces."""
+    return CliRunner()
 
 
 @pytest.fixture()
@@ -27,6 +34,24 @@ def temp_dir(tmp_path_factory, test_files) -> str:
 def suffix_list() -> List[str]:
     """Fixture for a random list of three file extensions."""
     return random.sample(["png", "jpg", "txt", "pdf", "tif", "tiff"], 3)
+
+
+@pytest.fixture()
+def random_identifier():
+    """Fixture for a random identifier."""
+    # create random identifier according to the pattern
+    # [SL][AHP][SDFNA]?-\\d{2}-\\d{5}"
+    if random.choice([True, False]):
+        # Before 2023
+        prefix = (
+            random.choice(["S", "L"])
+            + random.choice(["H", "P"])
+            + random.choice(["S", "D", "F", "N", "A"])
+        )
+    else:
+        prefix = random.choice(["S", "L"]) + random.choice(["A", "P"])
+
+    return f"{prefix}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}"
 
 
 @pytest.fixture()
