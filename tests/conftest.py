@@ -22,21 +22,6 @@ def runner() -> CliRunner:
 
 
 @pytest.fixture()
-def temp_dir(tmp_path_factory, test_files) -> str:
-    """Fixture for a temporary file."""
-    tmp_dir = tmp_path_factory.mktemp("data")
-    for elem in test_files:
-        tmp_dir.joinpath(elem).write_text("")
-    return str(tmp_dir)
-
-
-@pytest.fixture()
-def suffix_list() -> List[str]:
-    """Fixture for a random list of three file extensions."""
-    return random.sample(["png", "jpg", "txt", "pdf", "tif", "tiff"], 3)
-
-
-@pytest.fixture()
 def random_identifier():
     """Fixture for a random identifier."""
     # create random identifier according to the pattern
@@ -55,13 +40,27 @@ def random_identifier():
 
 
 @pytest.fixture()
-def test_files(suffix_list: list, num_test_cases: str = 10) -> List[str]:
+def random_diagnosis():
+    """Fixture for a random diagnosis."""
+    return random.choice(
+        ["adenoma", "adenocarcinoma", "glioma", "melanoma", "squamous cell carcinoma"]
+    )
+
+
+@pytest.fixture()
+def suffix_list() -> List[str]:
+    """Fixture for a random list of three file extensions."""
+    return random.sample(["png", "jpg", "txt", "pdf", "tif"], 3)
+
+
+@pytest.fixture()
+def test_files(random_diagnosis: str, suffix_list: list, num_test_cases: str = 10) -> List[str]:
     """Fixture to generate test filename combinations."""
     prefix = ["SHA", "SHD", "SHF", "SHN", "SHS", "LPS", "LPD", "LPF"]
     temp_filenames = [
         (
             f"{random.choice(prefix)}-{np.random.randint(99):02d}-{np.random.randint(9.9e4):05d}_"
-            f"part-{random.choice(string.ascii_uppercase)}_diagnosis_"
+            f"part-{random.choice(string.ascii_uppercase)}_{random_diagnosis}_"
             f"{np.random.randint(40):02d}x_{np.random.randint(999):03d}"
             f".{random.choice(suffix_list)}"
         )
@@ -80,6 +79,15 @@ def test_files(suffix_list: list, num_test_cases: str = 10) -> List[str]:
         ]
     )
     return temp_filenames
+
+
+@pytest.fixture()
+def temp_dir(tmp_path_factory, test_files) -> str:
+    """Fixture for a temporary file."""
+    tmp_dir = tmp_path_factory.mktemp("data")
+    for elem in test_files:
+        tmp_dir.joinpath(elem).write_text("")
+    return str(tmp_dir)
 
 
 @pytest.fixture()

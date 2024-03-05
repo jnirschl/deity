@@ -1,4 +1,5 @@
 """Tests for src/deity/encode.py."""
+# sourcery skip: no-loop-in-tests
 import hashlib
 import re
 from pathlib import Path
@@ -12,7 +13,7 @@ import deity
 @pytest.fixture()
 def regex_id():
     """Returns regex for identifier."""
-    return re.compile("[SL][HP][SDFNA]-\\d{2}-\\d{5}", re.IGNORECASE)
+    return re.compile("[SL][HP][SDFNA]?-\\d{2}-\\d{5}", re.IGNORECASE)
 
 
 @pytest.fixture()
@@ -25,6 +26,9 @@ def test_input():
         ("SHA-00-54321", True, None),
         ("LPS-00-54321", True, None),
         ("SHS-00-54321", True, None),
+        ("SA-24-00172", True, None),
+        ("SC-23-18963", True, None),
+        ("SP-24-012943", True, None),
         (np.random.randint(99999), False, TypeError),
         (None, False, TypeError),
         (b"SHS-00-54321", False, TypeError),
@@ -104,9 +108,7 @@ class TestEncodeSingle:
             _id, new_fname, _, _ = deity.encode_single(fname)
 
             assert new_fname != fname, f"{fname} should be different from {new_fname}"
-            assert not regex_id.search(
-                str(new_fname)
-            ), f"{new_fname} contains identifier"
+            assert not regex_id.search(str(new_fname)), f"{new_fname} contains identifier"
 
     def test_filname_fail(self, test_files, regex_id):
         """Test with reversed filename such that regex fails and file is not renamed."""
