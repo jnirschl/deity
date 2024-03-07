@@ -3,9 +3,14 @@
 
 import glob
 from pathlib import Path
+from typing import Any
+from typing import Dict
 from typing import Tuple
+from typing import Union
 
 import pandas as pd
+import ujson as json
+import yaml
 from loguru import logger
 
 
@@ -13,6 +18,18 @@ DEFAULT_PATTERNS = [
     "[SL]([A-Z]?[SDFNA]?)-\\d{2}-\\d{5,6}",
     "[SL][AHP]-\\d{2}-\\d{5,6}",
 ]
+
+
+def json_loader(file_path: Union[str, Path]) -> Any:
+    """Load a json file."""
+    with open(file_path) as f:
+        return json.load(f)
+
+
+def yaml_loader(file_path: Union[str, Path]) -> Dict:
+    """Reads a YAML configuration file and returns a dictionary of settings."""
+    with open(file_path) as file:
+        return yaml.safe_load(file)
 
 
 def get_file_list(input_dir: Path, extension: str = "txt,jpg,png") -> list:

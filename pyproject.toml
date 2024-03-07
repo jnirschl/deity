@@ -27,6 +27,8 @@ loguru = "^0.7.0"
 rich = "^13.7.0"
 segno = "^1.6.1"
 Pillow = "^9.0.1"
+pyyaml = "^6.0.1"
+ujson = "^5.9.0"
 
 [tool.poetry.group.yubico]
 optional = true

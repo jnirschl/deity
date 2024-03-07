@@ -16,44 +16,66 @@ from PIL import Image
 from PIL import ImageColor
 from PIL import ImageDraw
 from PIL import ImageFont
+from PIL.ImageFont import FreeTypeFont
 from segno import QRCode
 
 from deity.encode import encode_single
 
 
 VALID_EXTENSIONS = ["png", "svg", "eps", "txt", "pdf", "tex"]
+FONT_DIR = Path(__file__).parent.joinpath("font").as_posix()
+
+
+def set_font(
+    font: str = "default", font_size: int = 12, font_path: str = FONT_DIR
+) -> FreeTypeFont:
+    """Set the font."""
+    font_path = Path(font_path)
+    if isinstance(font, str) and font.lower() == "default":
+        font_path = font_path.joinpath("DejaVuSansMono.ttf")
+    elif isinstance(font, str) and font.lower() == "roboto":
+        font_path = font_path.joinpath("RobotoMono-VariableFont_wght.ttf")
+    elif isinstance(font, str) and font.lower() == "mono":
+        font_path = font_path.joinpath("SpaceMono-Regular.ttf")
+    elif isinstance(font, str) and Path(font).exists():
+        font_path = Path(font)
+    else:
+        raise ValueError(f"Invalid font: {font}")
+
+    return ImageFont.truetype(font_path.as_posix(), font_size)
 
 
 def convert_qr_to_pil(
     qr: QRCode,
     scale: int = 4,
-    title: Optional[str] = None,
+    text: Optional[str] = None,
     border: Optional[int] = None,
-    font_size: int = 12,
+    font: Optional[str] = "mono",
+    font_size: int = 10,
     font_color: Optional[str] = None,
     dark: str = "#000",
     light: str = "#fff",
     quiet_zone: Optional[str] = None,
     sep: str = "\n",
+    output_size: Optional[tuple[int, int]] = None,
 ) -> Image:
     """Convert QR code to PIL image."""
     # save into memory buffer as PNG
     png = io.BytesIO()
-    qr.save(png, kind="png", scale=scale)
+    qr.save(png, kind="png", scale=scale, border=border, dark=dark, light=light)
     png.seek(0)  # important to let PIL load the png
     img = Image.open(png)
     img = img.convert("RGB")
 
-    if title is None:
+    if text is None:
         return img
 
     # Draw the title on the QR code
-    font_path = os.path.join(os.path.dirname(__file__), "font", "DejaVuSansMono.ttf")
-    font = ImageFont.truetype(font_path, font_size)
+    font = set_font(font=font, font_size=font_size)
     width, height = img.size
-    x, y = (scale * (border or qr.default_border_size), height)
-    line_spacing = font_size // 2
-    lines = title.split(sep=sep)
+    x, y = (scale * (border if border is not None else qr.default_border_size), height)
+    line_spacing = 1  # (font_size // 2) - 4
+    lines = text.split(sep=sep)
 
     # Calculate the additional space required for the text
     for line in lines:
@@ -75,7 +97,8 @@ def convert_qr_to_pil(
         # This operation is reverted after drawing the text
         img = img.convert("RGBA")
 
-    res_img = Image.new(img.mode, (width, height), color=quiet_zone or light)
+    output_size = output_size or (width, height)
+    res_img = Image.new(img.mode, output_size, color=quiet_zone or light)
     res_img.paste(img)
     draw = ImageDraw.Draw(res_img)
     font_color = font_color or dark
@@ -87,6 +110,9 @@ def convert_qr_to_pil(
     if has_palette:
         res_img = res_img.convert("P")
 
+    if output_size:
+        res_img = res_img.resize(output_size)
+
     return res_img
 
 
@@ -94,18 +120,20 @@ def create_qr_single(
     text: str,
     encode: bool = True,
     micro: bool = False,
+    error: str = "M",
 ) -> QRCode:
     """Create QR codes from a string identifier.
     :param text:  String identifier to be encoded.
     :param encode: If True, the text will be encoded before creating the QR code.
     :param micro: If True, the QR code will be a MicroQR code.
+    :param error: Error correction level (L, M, Q, H).
     :return: QR code object or PIL image.
     """
     if encode:
         filepath = encode_single(text)[1]
         text = filepath.name if isinstance(filepath, Path) else filepath
 
-    return segno.make(text, micro=micro)
+    return segno.make(text, micro=micro, error=error)
 
 
 def create_qr_list(

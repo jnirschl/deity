@@ -3,97 +3,233 @@
 
 from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
 import click
+import numpy as np
 import pandas as pd
 from dotenv import find_dotenv
 from dotenv import load_dotenv
 from loguru import logger
 from PIL import Image
+from PIL import ImageDraw
 
 from deity import encode_single
 from deity.barcodes.create_qr import convert_qr_to_pil
 from deity.barcodes.create_qr import create_qr_single
+from deity.barcodes.create_qr import set_font
+from deity.utils import yaml_loader
 
 
-# Constants for the label sheet layout
-LABEL_ROWS = 14
-LABEL_COLS = 11
-LABEL_SPACING = 0.5  # cm
-TOP_BOTTOM_MARGIN = 2  # cm
-LEFT_RIGHT_MARGIN = 1  # cm
-LABEL_DIAMETER = 1.27  # cm (1/2 inch)
-DPI = 300  # Assuming a printing quality of 300 dots per inch
+def load_config(config: str) -> dict:
+    """Load the configuration file."""
+    if not Path(config).exists() or not Path(config).is_file():
+        logger.error(f"Config file {config} does not exist.")
+        raise FileNotFoundError(f"Config file {config} does not exist.")
 
-# Calculate size in pixels (1 inch = 2.54 cm)
-PIXEL_SPACING = int((LABEL_SPACING / 2.54) * DPI)
-PIXEL_MARGIN_LR = int((LEFT_RIGHT_MARGIN / 2.54) * DPI)
-PIXEL_MARGIN_TB = int((TOP_BOTTOM_MARGIN / 2.54) * DPI)
-LABEL_DIAMETER_PX = int((LABEL_DIAMETER / 2.54) * DPI)
-SHEET_WIDTH_PX = (
-    (LABEL_COLS * LABEL_DIAMETER_PX) + ((LABEL_COLS - 1) * PIXEL_SPACING) + (2 * PIXEL_MARGIN_LR)
-)
-SHEET_HEIGHT_PX = (
-    (LABEL_ROWS * LABEL_DIAMETER_PX) + ((LABEL_ROWS - 1) * PIXEL_SPACING) + (2 * PIXEL_MARGIN_TB)
-)
+    config = yaml_loader(config)
+    config["output_size"] = tuple(config["output_size"])
+    config["page_size"] = tuple(config["page_size"])
+    return config
+
+
+def draw_label(
+    image: Image.Image,
+    xy_coord: tuple,
+    text: str,
+    font: str = "default",
+    font_size: int = 20,
+    fill: str = "black",
+):
+    """Draw the row number on the label sheet."""
+    draw = ImageDraw.Draw(image)
+    font = set_font(font, font_size=font_size)
+    draw.text(xy_coord, text, font=font, fill=fill)
+
+    return image
+
+
+def setup_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Add uuid, label_text, and new_filename columns to df."""
+    if "uuid" not in df.columns:
+        cols = list(df.columns)
+        cols.insert(0, "uuid")
+        df["uuid"] = df.apply(lambda x: str(uuid4()), axis=1)
+        df = df[cols].copy()
+    else:
+        # only update uuids that are null
+        df["uuid"] = df["uuid"].apply(lambda x: str(uuid4()) if pd.isnull(x) else x)
+
+    if "label_text" not in df.columns:
+        # add empty column for label text
+        df.loc[:, "label_text"] = ""
+
+    if "new_filename" not in df.columns:
+        df.loc[:, "new_filename"] = ""
+
+    if "full_hash" not in df.columns:
+        df.loc[:, "full_hash"] = ""
+
+    if "short_hash" not in df.columns:
+        df.loc[:, "short_hash"] = ""
+
+    return df
 
 
 @click.command()
 @click.argument("input-file", type=click.Path(exists=True, path_type=Path))
 @click.option("--output-file", default=None, help="Output file name for the label sheet.")
+@click.option(
+    "--config",
+    default=None,
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to the configuration file.",
+)
 @click.option("--column", default="filename", help="Column name for the QR code data.")
+@click.option(
+    "--start",
+    default=0,
+    type=click.IntRange(0, 153),
+    help="Start index for the contact sheet (0-153).",
+)
 @click.option("--dry-run", is_flag=True, help="Perform a trial run with no changes.")
-def main(input_file: Path, output_file: Optional[str], column: str, dry_run: bool) -> None:
+@click.option("--debug", is_flag=True, help="Show debug information.")
+def main(
+    input_file: Path,
+    output_file: Optional[str] = None,
+    config: Optional[str] = None,
+    column: str = "filename",
+    start: int = 0,
+    debug: bool = False,
+    dry_run: bool = False,
+) -> None:
     """
     Arrange QR codes on a printable label sheet with specific dimensions and spacing.
 
     :param input_file: CSV file containing text data to be encoded as QR codes.
     :param output_file: Name of the file to save the generated label sheet to.
+    :param config: Path to the configuration file.
     :param column: Name of the column in the CSV file containing the text data.
+    :param start: Start index for the contact sheet.
+    :param debug: If True, debug information will be shown.
     :param dry_run: If True, no actual file will be written.
     """
-    output_file = output_file or input_file.with_suffix(".pdf")
+    # setup
+    project_dir = Path(__file__).resolve().parents[2]
+    conf_dir = project_dir.joinpath("src", "deity", "conf")
+    output_file = output_file or input_file.with_suffix(".tif")
+
+    # load configuration settings
+    config = config or conf_dir.joinpath("contact_sheet.yaml")
+    config_dict = load_config(config)
+    label_dia_px = config_dict["label_size"]["diameter"]
+    px_spacing_x = config_dict["label_spacing"]["x"]
+    px_spacing_y = config_dict["label_spacing"]["y"]
+    margin_lr = config_dict["margins"]["left_right"]
+    margin_tb = config_dict["margins"]["top_bottom"]
+
+    # log configuration settings
     logger.info(f"Input file: {input_file}")
     logger.info(f"Output file: {output_file}")
+    logger.info(f"Configuration file: {config_dict['name']}")
 
     # Initialize the label sheet
-    label_sheet = Image.new("RGB", (SHEET_WIDTH_PX, SHEET_HEIGHT_PX), "white")
+    label_sheet = Image.new("RGB", config_dict["page_size"], "white")
+
+    # add column label above each column
+    for col in range(config_dict["columns"]):
+        x = margin_lr + (col * (label_dia_px + px_spacing_x))
+        y = margin_tb - 40
+        label_sheet = draw_label(label_sheet, (x, y), f"Col {col+1}", font_size=20)
+
+    # add row label to the left of each row
+    for row in range(config_dict["rows"]):
+        x = margin_lr - 100
+        y = margin_tb + (row * (label_dia_px + px_spacing_y))
+        label_sheet = draw_label(label_sheet, (x, y), f"Row {row+1}", font_size=20)
+        label_sheet = draw_label(label_sheet, (x + 10, y + 18), f"{(row*11)+1}", font_size=20)
 
     # Load csv with names to be encoded
     df = pd.read_csv(input_file, header=0)
 
-    # Loop through the rows of the csv and create QR codes
-    for index, row in df.iterrows():
-        name = row[column]
-        identifier, filepath, full_hash, short_hash = encode_single(name)
-        qr_code = create_qr_single(name, encode=False)
+    # update df with new columns
+    df = setup_df(df)
 
-        #
+    # check if any rows have filenames >54 chars
+    if df[column].str.len().max() > 54:
+        logger.warning("Some names are longer than 54 characters")
+
+    # Loop through the rows of the csv and create QR codes
+    for idx, df_row in df.iterrows():
+        name = df_row[column]
+        identifier, filepath, full_hash, short_hash = encode_single(name)
+
+        # add filepath to column in df
+        df.at[idx, "new_filename"] = filepath.name
+
         if full_hash is None:
-            logger.warning(f"No identifier found in {filepath.name}")
+            logger.warning(f"No identifier found in {filepath.name}") if debug else None
+            df.drop(idx, inplace=True)
             continue
 
-        _id, part, loc, dx = filepath.name.split("_")[:4]
-        title = f"{full_hash[:8]}-{full_hash[8:12]}\n{part}_{loc[:4]}_{dx[:6]}"
-        qr_png = convert_qr_to_pil(qr_code, border=0, scale=4, title=title)
+        # Create the QR code
+        qr_code = create_qr_single(name, encode=False, error="L")
+
+        # Extract the metadata from the filename
+        _id, _part, _loc, _dx, _stain = filepath.name.split("_")[:5]
+        # stain = stain.replace("-", "")[:5]
+        # text = f"{df_row['uuid'][:12]}\n  {full_hash[:6]}_{part}\n  {loc}_{stain}"
+        text = f"{df_row['uuid'][:8]}\n{df_row['uuid'][9:18]}"
+
+        # add text to column in df
+        df.at[idx, "label_text"] = text.replace("\n  ", "_").strip()
+
+        # Convert the QR code to a PIL image
+        qr_png = convert_qr_to_pil(
+            qr_code,
+            border=config_dict["border"],
+            scale=config_dict["scale"],
+            font=config_dict["font"],
+            font_size=config_dict["font_size"],
+            text=text,
+            output_size=config_dict["output_size"],
+        )
         # Calculate the row and column for this QR code
-        row = index // LABEL_COLS
-        col = index % LABEL_COLS
+        row = (idx + start) // config_dict["columns"]
+        col = (idx + start) % config_dict["columns"]
 
         # Calculate top-left position for this QR code
-        x = PIXEL_MARGIN_LR + (col * (LABEL_DIAMETER_PX + PIXEL_SPACING))
-        y = PIXEL_MARGIN_TB + (row * (LABEL_DIAMETER_PX + PIXEL_SPACING))
+        x = np.round(margin_lr + (col * (label_dia_px + px_spacing_x))).astype(int)
+        y = np.round(margin_tb + (row * (label_dia_px + px_spacing_y))).astype(int)
 
-        # Resize QR code to fit the label, if necessary, and center it
-        qr_png = qr_png.resize((LABEL_DIAMETER_PX, LABEL_DIAMETER_PX), Image.LANCZOS)
+        # Paste the QR code onto the label sheet
         label_sheet.paste(qr_png, (x, y))
 
     if dry_run:
         logger.info("Dry run mode: No changes will be made.")
         return
-    # Save the label sheet to the specified output file
-    label_sheet.save(output_file)
+
+    if debug:
+        # blend label_sheet with tiff named "template
+        template = Image.open("template.tif")
+        blend_img = Image.blend(label_sheet, template, alpha=0.5)
+        blend_img.show()
+
+    # Save the label sheet and uuid df to the specified files
+    csv_file = output_file.parent.joinpath(f"{output_file.stem}_uuid.csv")
+    if output_file.exists() or csv_file.exists():
+        logger.warning(f"Output file {output_file} or {csv_file} already exists.")
+        result = click.confirm("Do you want to overwrite?", abort=True)
+        if not result:
+            logger.error("Aborted by user. No files were written.")
+            return
+
+    label_sheet.save(output_file, dpi=(config_dict["dpi"], config_dict["dpi"]))
     logger.info(f"Label sheet saved to {output_file}")
+
+    # save df with uuids to csv
+    df.to_csv(csv_file, index=False)
+    logger.info(f"UUIDs saved to {csv_file}")
 
 
 if __name__ == "__main__":
