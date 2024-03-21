@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """__main__.py in src/deity."""
 from pathlib import Path
+from typing import Optional
 
 import click
 from dotenv import find_dotenv
@@ -11,7 +12,6 @@ from deity import __version__
 from deity import database
 from deity.decode import decode_all
 from deity.encode import encode_all
-from deity.utils import DEFAULT_PATTERNS
 from deity.utils import create_df_sql
 from deity.utils import get_file_list
 from deity.utils import rename_files
@@ -19,13 +19,13 @@ from deity.utils import rename_files
 
 @click.command()
 @click.argument("input-dir", type=click.Path(exists=True, path_type=Path, resolve_path=True))
-@click.argument("database-file", type=click.Path(path_type=Path))
-@click.argument("table-name", type=click.STRING)
+@click.option("--database-file", default="deity.db", type=click.Path(path_type=Path))
+@click.option("--table-name", default="specimens", type=click.Choice(["subjects", "specimens"]))
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
 @click.option("--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension")
 @click.option(
     "--pattern",
-    default=DEFAULT_PATTERNS,
+    default=None,
     type=click.STRING,
     help="Pattern",
 )
@@ -38,10 +38,10 @@ def main(
     table_name: str,
     output_dir: str = None,
     extension: str = "txt,jpg,png",
-    pattern: str = DEFAULT_PATTERNS,
+    pattern: Optional[str] = None,
     decode: bool = False,
     dry_run: bool = False,
-) -> None:
+) -> None:  # sourcery skip
     """Command line interface to encode or decode files in a directory."""
     logger.info("Dry run") if dry_run else None
 
@@ -74,6 +74,11 @@ def main(
 
         # create dataframe for file renaming and sql export
         df_file_rename, df_sql = create_df_sql(df, table_name)
+
+        # check if new_filepath is different from old_filepath
+        if (df_file_rename["old_filepath"] == df_file_rename["new_filepath"]).all():
+            logger.error("No files were encoded")
+            raise ValueError("No files were encoded")
 
         # connect to database or create if it doesn't exist
         if not dry_run and not database_file.exists():

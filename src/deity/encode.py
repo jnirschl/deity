@@ -30,7 +30,7 @@ def encode(text: str, num_chars: int = 16) -> tuple:
 
 def encode_single(
     filepath: Union[str, Path],
-    pattern: Union[str, list] = DEFAULT_PATTERNS,
+    pattern: Union[str] = None,
     output_dir: Optional[str] = None,
     ignore_case=re.IGNORECASE,
     num_chars: int = 16,
@@ -39,7 +39,7 @@ def encode_single(
     # create Path object
     filepath = Path(filepath).resolve()
 
-    pattern = pattern if isinstance(pattern, list) else [pattern]
+    pattern = [pattern] if pattern and isinstance(pattern, str) else DEFAULT_PATTERNS
 
     # set output_dir to source filepath if not specified
     if output_dir is None or not Path(output_dir).exists():
@@ -73,7 +73,7 @@ def encode_single(
 
 def encode_all(
     filepath_list: list,
-    pattern: str = DEFAULT_PATTERNS,
+    pattern: Optional[str] = None,
     output_dir: str = None,
     ignore_case: bool = re.IGNORECASE,
     num_chars: int = 16,
@@ -95,7 +95,7 @@ def encode_all(
     for file in tqdm(filepath_list):
         specimen_id, new_filename, full_hash, short_hash = encode_single(
             file,
-            pattern,
+            pattern=pattern,
             output_dir=output_dir,
             ignore_case=ignore_case,
             num_chars=num_chars,
