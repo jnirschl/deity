@@ -78,7 +78,9 @@ def setup_df(df: pd.DataFrame) -> pd.DataFrame:
 
 @click.command()
 @click.argument("input-file", type=click.Path(exists=True, path_type=Path))
-@click.option("--output-file", default=None, help="Output file name for the label sheet.")
+@click.option(
+    "--output-file", default=None, help="Output file name for the label sheet."
+)
 @click.option(
     "--config",
     default=None,
@@ -92,6 +94,9 @@ def setup_df(df: pd.DataFrame) -> pd.DataFrame:
     type=click.IntRange(0, 153),
     help="Start index for the contact sheet (0-153).",
 )
+@click.option(
+    "--no-encode", default=False, is_flag=True, help="Do not encode the text."
+)
 @click.option("--dry-run", is_flag=True, help="Perform a trial run with no changes.")
 @click.option("--debug", is_flag=True, help="Show debug information.")
 def main(
@@ -101,10 +106,10 @@ def main(
     column: str = "filename",
     start: int = 0,
     debug: bool = False,
+    no_encode: bool = False,
     dry_run: bool = False,
-) -> None:
-    """
-    Arrange QR codes on a printable label sheet with specific dimensions and spacing.
+) -> None:  # sourcery-skip
+    """Arrange QR codes on a printable label sheet with specific dimensions and spacing.
 
     :param input_file: CSV file containing text data to be encoded as QR codes.
     :param output_file: Name of the file to save the generated label sheet to.
@@ -147,7 +152,9 @@ def main(
         x = margin_lr - 100
         y = margin_tb + (row * (label_dia_px + px_spacing_y))
         label_sheet = draw_label(label_sheet, (x, y), f"Row {row+1}", font_size=20)
-        label_sheet = draw_label(label_sheet, (x + 10, y + 18), f"{(row*11)+1}", font_size=20)
+        label_sheet = draw_label(
+            label_sheet, (x + 10, y + 18), f"{(row*11)+1}", font_size=20
+        )
 
     # Load csv with names to be encoded
     df = pd.read_csv(input_file, header=0)
@@ -165,18 +172,19 @@ def main(
         identifier, filepath, full_hash, short_hash = encode_single(name)
 
         # add filepath to column in df
-        df.at[idx, "new_filename"] = filepath.name
+        new_filename = name if no_encode else filepath.name
+        df.at[idx, "new_filename"] = new_filename
 
         if full_hash is None:
-            logger.warning(f"No identifier found in {filepath.name}") if debug else None
+            logger.warning(f"No identifier found in {name}")
             df.drop(idx, inplace=True)
             continue
 
         # Create the QR code
-        qr_code = create_qr_single(name, encode=False, error="L")
+        qr_code = create_qr_single(new_filename, encode=False, error="L")
 
         # Extract the metadata from the filename
-        _id, _part, _loc, _dx, _stain = filepath.name.split("_")[:5]
+        _id, _part, _loc, _dx, _stain = new_filename.split("_")[:5]
         # stain = stain.replace("-", "")[:5]
         # text = f"{df_row['uuid'][:12]}\n  {full_hash[:6]}_{part}\n  {loc}_{stain}"
         text = f"{df_row['uuid'][:8]}\n{df_row['uuid'][9:18]}"
