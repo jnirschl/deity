@@ -78,9 +78,7 @@ def setup_df(df: pd.DataFrame) -> pd.DataFrame:
 
 @click.command()
 @click.argument("input-file", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--output-file", default=None, help="Output file name for the label sheet."
-)
+@click.option("--output-file", default=None, help="Output file name for the label sheet.")
 @click.option(
     "--config",
     default=None,
@@ -94,9 +92,7 @@ def setup_df(df: pd.DataFrame) -> pd.DataFrame:
     type=click.IntRange(0, 153),
     help="Start index for the contact sheet (0-153).",
 )
-@click.option(
-    "--no-encode", default=False, is_flag=True, help="Do not encode the text."
-)
+@click.option("--no-encode", default=False, is_flag=True, help="Do not encode the text.")
 @click.option("--dry-run", is_flag=True, help="Perform a trial run with no changes.")
 @click.option("--debug", is_flag=True, help="Show debug information.")
 def main(
@@ -124,6 +120,13 @@ def main(
     conf_dir = project_dir.joinpath("src", "deity", "conf")
     output_file = output_file or input_file.with_suffix(".tif")
 
+    log_dir = project_dir.joinpath("logs")
+    logger.add(
+        log_dir.joinpath(f"{Path(__file__).stem}.log"),
+        rotation="10 MB",
+        level="INFO",
+    )
+
     # load configuration settings
     config = config or conf_dir.joinpath("contact_sheet.yaml")
     config_dict = load_config(config)
@@ -141,6 +144,11 @@ def main(
     # Initialize the label sheet
     label_sheet = Image.new("RGB", config_dict["page_size"], "white")
 
+    # add filename to top of label sheet
+    x = margin_lr + 100
+    y = margin_tb - 100
+    label_sheet = draw_label(label_sheet, (x, y), f"{output_file.stem}", font_size=32)
+
     # add column label above each column
     for col in range(config_dict["columns"]):
         x = margin_lr + (col * (label_dia_px + px_spacing_x))
@@ -152,9 +160,7 @@ def main(
         x = margin_lr - 100
         y = margin_tb + (row * (label_dia_px + px_spacing_y))
         label_sheet = draw_label(label_sheet, (x, y), f"Row {row+1}", font_size=20)
-        label_sheet = draw_label(
-            label_sheet, (x + 10, y + 18), f"{(row*11)+1}", font_size=20
-        )
+        label_sheet = draw_label(label_sheet, (x + 10, y + 18), f"{(row*11)+1}", font_size=20)
 
     # Load csv with names to be encoded
     df = pd.read_csv(input_file, header=0)
