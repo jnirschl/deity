@@ -38,7 +38,9 @@ class TestCreateQRSingle:
         error_level: str,
     ):
         # Act
-        qr_code = create_qr_single(filename, encode=encode, micro=micro, error=error_level)
+        qr_code = create_qr_single(
+            filename, encode=encode, micro=micro, error=error_level
+        )
 
         # Assert
         assert isinstance(qr_code, expected_type)

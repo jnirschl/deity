@@ -56,7 +56,9 @@ def rename_files(df_file_rename: pd.DataFrame) -> None:
     )
 
 
-def create_df_sql(df: pd.DataFrame, table_name: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def create_df_sql(
+    df: pd.DataFrame, table_name: str
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Create pandas DataFrame from SQL query."""
     df_file_rename = df[["old_filepath", "new_filepath"]].copy()
 

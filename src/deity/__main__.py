@@ -18,11 +18,17 @@ from deity.utils import rename_files
 
 
 @click.command()
-@click.argument("input-dir", type=click.Path(exists=True, path_type=Path, resolve_path=True))
+@click.argument(
+    "input-dir", type=click.Path(exists=True, path_type=Path, resolve_path=True)
+)
 @click.option("--database-file", default="deity.db", type=click.Path(path_type=Path))
-@click.option("--table-name", default="specimens", type=click.Choice(["subjects", "specimens"]))
+@click.option(
+    "--table-name", default="specimens", type=click.Choice(["subjects", "specimens"])
+)
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
-@click.option("--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension")
+@click.option(
+    "--extension", default="jpg,png,svs,txt,qpdata", type=click.STRING, help="Extension"
+)
 @click.option(
     "--pattern",
     default=None,
@@ -86,7 +92,9 @@ def main(
 
             conn = database.create_connection(database_file)
 
-            database.create_update_sql(df_sql, table_name, conn, output_file=database_file)
+            database.create_update_sql(
+                df_sql, table_name, conn, output_file=database_file
+            )
 
             if len(df_file_rename) > 0:
                 rename_files(df_file_rename)

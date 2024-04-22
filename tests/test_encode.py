@@ -108,7 +108,9 @@ class TestEncodeSingle:
             _id, new_fname, _, _ = deity.encode_single(fname)
 
             assert new_fname != fname, f"{fname} should be different from {new_fname}"
-            assert not regex_id.search(str(new_fname)), f"{new_fname} contains identifier"
+            assert not regex_id.search(
+                str(new_fname)
+            ), f"{new_fname} contains identifier"
 
     def test_filname_fail(self, test_files, regex_id):
         """Test with reversed filename such that regex fails and file is not renamed."""

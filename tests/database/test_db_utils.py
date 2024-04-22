@@ -47,10 +47,14 @@ class TestDatabase:
         # select records
         for table in records.keys():
             query = (
-                "SELECT * FROM subjects;" if table == "subjects" else "SELECT * FROM specimens;"
+                "SELECT * FROM subjects;"
+                if table == "subjects"
+                else "SELECT * FROM specimens;"
             )
             result = execute_query(conn, query)
-            assert result == records[table], AssertionError(f"{result} != {records[table]}")
+            assert result == records[table], AssertionError(
+                f"{result} != {records[table]}"
+            )
 
         close_connection(conn)
 

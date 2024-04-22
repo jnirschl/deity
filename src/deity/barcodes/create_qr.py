@@ -102,7 +102,9 @@ def convert_qr_to_pil(
     res_img.paste(img)
     draw = ImageDraw.Draw(res_img)
     font_color = font_color or dark
-    draw_text = partial(draw.text, font=font, fill=ImageColor.getcolor(font_color, img.mode))
+    draw_text = partial(
+        draw.text, font=font, fill=ImageColor.getcolor(font_color, img.mode)
+    )
     for line in lines:
         draw_text((x, y), line)
         y += font_size + line_spacing
