@@ -36,12 +36,15 @@ def load_config(config: str) -> dict:
 def draw_label(
     image: Image.Image,
     xy_coord: tuple,
-    text: str,
+    text: Optional[str],
     font: str = "default",
     font_size: int = 20,
     fill: str = "black",
 ):
     """Draw the row number on the label sheet."""
+    if text is None:
+        return image
+
     draw = ImageDraw.Draw(image)
     font = set_font(font, font_size=font_size)
     draw.text(xy_coord, text, font=font, fill=fill)
@@ -54,7 +57,7 @@ def setup_df(df: pd.DataFrame) -> pd.DataFrame:
     if "uuid" not in df.columns:
         cols = list(df.columns)
         cols.insert(0, "uuid")
-        df["uuid"] = df.apply(lambda x: str(uuid4()), axis=1)
+        df["uuid"] = df.apply(lambda x: str(uuid4()) if x.get("filename") else None, axis=1)
         df = df[cols].copy()
     else:
         # only update uuids that are null
@@ -122,7 +125,9 @@ def main(
     # setup
     project_dir = Path(__file__).resolve().parents[2]
     conf_dir = project_dir.joinpath("src", "deity", "conf")
-    output_file = output_file or input_file.with_suffix(".tif")
+    if output_file is None:
+        output_file = Path(str(input_file).replace("data/raw","data/processed")).with_suffix(".tif")
+        output_file.parent.mkdir(parents=True, exist_ok=True)
 
     log_dir = project_dir.joinpath("logs")
     logger.add(
@@ -170,6 +175,8 @@ def main(
 
     # Load csv with names to be encoded
     df = pd.read_csv(input_file, header=0)
+    # fillna
+    df = df.fillna("")
 
     # update df with new columns
     df = setup_df(df)
@@ -180,17 +187,28 @@ def main(
 
     # Loop through the rows of the csv and create QR codes
     for idx, df_row in df.iterrows():
-        name = df_row[column]
+        name = df_row.get(column)
+        if name is None or pd.isnull(name) or name == "" or "____" in name:
+            # logger.warning(f"Starting new accession: {df_row['accession']}")
+            # Calculate the row and column for this QR code
+            row = (idx + start) // config_dict["columns"]
+            col = (idx + start) % config_dict["columns"]
+
+            # Calculate top-left position for this QR code
+            x = np.round(margin_lr + (col * (label_dia_px + px_spacing_x))).astype(int)
+            y = np.round(margin_tb + (row * (label_dia_px + px_spacing_y))).astype(int)
+
+            #
+            label_text = f"Starting\n{df_row['accession']}\n{df_row['part']}\n{df_row['stain']}" if df_row['accession'] else None
+            label_sheet = draw_label(label_sheet, (x, y), label_text, font_size=18)
+            df.drop(idx, inplace=True)
+            continue
+
         identifier, filepath, full_hash, short_hash = encode_single(name)
 
         # add filepath to column in df
         new_filename = name if no_encode else filepath.name
         df.at[idx, "new_filename"] = new_filename
-
-        if full_hash is None:
-            logger.warning(f"No identifier found in {name}")
-            df.drop(idx, inplace=True)
-            continue
 
         # Create the QR code
         qr_code = create_qr_single(new_filename, encode=False, error="L")
@@ -214,6 +232,7 @@ def main(
             text=text,
             output_size=config_dict["output_size"],
         )
+            
         # Calculate the row and column for this QR code
         row = (idx + start) // config_dict["columns"]
         col = (idx + start) % config_dict["columns"]
