@@ -96,6 +96,8 @@ target/
 venv/
 
 # exclude data, logs, models, and results from source control by default
+./data/**/*.xlsx
+./data/**/*.tif
 /logs/
 /models/
 /results/
