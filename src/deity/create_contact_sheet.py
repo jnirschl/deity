@@ -57,7 +57,9 @@ def setup_df(df: pd.DataFrame) -> pd.DataFrame:
     if "uuid" not in df.columns:
         cols = list(df.columns)
         cols.insert(0, "uuid")
-        df["uuid"] = df.apply(lambda x: str(uuid4()) if x.get("filename") else None, axis=1)
+        df["uuid"] = df.apply(
+            lambda x: str(uuid4()) if x.get("filename") else None, axis=1
+        )
         df = df[cols].copy()
     else:
         # only update uuids that are null
@@ -126,7 +128,9 @@ def main(
     project_dir = Path(__file__).resolve().parents[2]
     conf_dir = project_dir.joinpath("src", "deity", "conf")
     if output_file is None:
-        output_file = Path(str(input_file).replace("data/raw","data/processed")).with_suffix(".tif")
+        output_file = Path(
+            str(input_file).replace("data/raw", "data/processed")
+        ).with_suffix(".tif")
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
     log_dir = project_dir.joinpath("logs")
@@ -155,13 +159,13 @@ def main(
 
     # add filename to top of label sheet
     x = margin_lr + 100
-    y = margin_tb - 100
+    y = margin_tb - 140
     label_sheet = draw_label(label_sheet, (x, y), f"{output_file.stem}", font_size=32)
 
     # add column label above each column
     for col in range(config_dict["columns"]):
         x = margin_lr + (col * (label_dia_px + px_spacing_x))
-        y = margin_tb - 40
+        y = margin_tb - 80
         label_sheet = draw_label(label_sheet, (x, y), f"Col {col+1}", font_size=20)
 
     # add row label to the left of each row
@@ -199,11 +203,17 @@ def main(
             y = np.round(margin_tb + (row * (label_dia_px + px_spacing_y))).astype(int)
 
             #
-            label_text = f"Starting\n{df_row['accession']}\n{df_row['part']}\n{df_row['stain']}" if df_row['accession'] else None
+            label_text = (
+                f"Starting\n{df_row['accession']}\n{df.loc[idx+1, 'part']}, {df_row['stain']}"
+                f"\n{df.loc[idx+1, 'uuid'][:8]}"
+                if df_row["accession"]
+                else None
+            )
             label_sheet = draw_label(label_sheet, (x, y), label_text, font_size=18)
             df.drop(idx, inplace=True)
             continue
 
+        # encode the name
         identifier, filepath, full_hash, short_hash = encode_single(name)
 
         # add filepath to column in df
@@ -232,7 +242,13 @@ def main(
             text=text,
             output_size=config_dict["output_size"],
         )
-            
+        if qr_png.size != config_dict["output_size"]:
+            logger.warning(
+                f"QR code for {name} is not the correct size. "
+                f"Expected {config_dict['output_size']}, but got {qr_png.size}."
+            )
+            logger.warning(f"QR code for {name} will be resized to {config_dict['output_size']}.")
+
         # Calculate the row and column for this QR code
         row = (idx + start) // config_dict["columns"]
         col = (idx + start) % config_dict["columns"]
@@ -243,6 +259,12 @@ def main(
 
         # Paste the QR code onto the label sheet
         label_sheet.paste(qr_png, (x, y))
+
+        # add text label with block number (aka part)
+        label_text = (
+            f"{df_row['abbrev'][:4]} {df_row['part']} {df_row['stain']}" if df_row["part"] else f"{df_row['abbrev'][:4]} {df_row['stain']}"
+        )
+        label_sheet = draw_label(label_sheet, (x, y - 40), label_text, font_size=18)
 
     if dry_run:
         logger.info("Dry run mode: No changes will be made.")
