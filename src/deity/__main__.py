@@ -23,7 +23,7 @@ from deity.utils import rename_files
 )
 @click.option("--database-file", default="deity.db", type=click.Path(path_type=Path))
 @click.option(
-    "--table-name", default="specimens", type=click.Choice(["subjects", "specimens"])
+    "--table-name", default="specimens", type=click.Choice(["accession", "subjects", "specimens"])
 )
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
 @click.option(
