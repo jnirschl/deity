@@ -17,6 +17,7 @@ from loguru import logger
 DEFAULT_PATTERNS = [
     "[SL]([A-Z]?[SDFNA]?)-\\d{2}-\\d{5,6}",
     "[SL][AHP]-\\d{2}-\\d{5,6}",
+    "[A-Z]{1,2}-?\\d{2}-\\d{3,6}",
 ]
 
 
