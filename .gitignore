@@ -116,3 +116,4 @@ slurm*.out
 
 # gpg files
 *.gpg
+/allen_brain_ontology.csv
