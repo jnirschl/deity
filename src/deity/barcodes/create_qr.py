@@ -123,19 +123,23 @@ def create_qr_single(
     encode: bool = True,
     micro: bool = False,
     error: str = "M",
+    mask: Optional[int] = None,
+    boost_error: bool = True,
 ) -> QRCode:
     """Create QR codes from a string identifier.
     :param text:  String identifier to be encoded.
     :param encode: If True, the text will be encoded before creating the QR code.
     :param micro: If True, the QR code will be a MicroQR code.
     :param error: Error correction level (L, M, Q, H).
+    :param mask: Mask pattern to be used.
+    :param boost_error: If True, the error correction level will be boosted.
     :return: QR code object or PIL image.
     """
     if encode:
         filepath = encode_single(text)[1]
         text = filepath.name if isinstance(filepath, Path) else filepath
 
-    return segno.make(text, micro=micro, error=error)
+    return segno.make(text, micro=micro, error=error, mask=mask, boost_error=boost_error)
 
 
 def create_qr_list(
