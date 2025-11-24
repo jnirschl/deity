@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Check out the repository
         id: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python }}
         id: setup-python
@@ -133,7 +133,7 @@ jobs:
     steps:
       - name: Check out the repository
         id: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Python
         id: setup-python
