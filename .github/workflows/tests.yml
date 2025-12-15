@@ -176,7 +176,7 @@ jobs:
 
       - name: Download coverage data
         id: download-coverage
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: coverage-data
 
