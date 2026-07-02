@@ -17,11 +17,21 @@ def decode_all(
     database_file: Path, table_name: str, extension: str = None, dry_run=False
 ) -> None:
     """Decode files in input_dir using database_file and table_name."""
-    # connect to database
-    conn = database.create_connection(database_file)
+    # connect to database or CSV
+    conn = None
+    if database_file.suffix == ".db":
+        conn = database.create_connection(database_file)
 
-    # load database
-    df = pd.read_sql(f"SELECT * FROM {table_name}", conn, index_col="id")  # noqa: S608
+        # load database
+        df = pd.read_sql(
+            f"SELECT * FROM {table_name}", conn, index_col="id"
+        )  # noqa: S608
+    elif database_file.suffix == ".csv":
+        df = pd.read_csv(database_file, index_col="accession")
+    else:
+        raise ValueError(
+            f"Database file must be a .db or .csv file, but received {database_file.suffix}"
+        )
 
     # decode files
     df_file_rename = df[["old_filepath", "filepath"]].copy()
@@ -68,7 +78,10 @@ def decode_all(
                     lambda row: row["filepath"].rename(row["old_filepath"]), axis=1
                 )
         else:
-            logger.error(f"File(s) not found: {df_file_rename[~file_list_exists]}")
+            df_file_rename["name"] = df_file_rename["filepath"].apply(lambda x: x.name)
+            logger.error(
+                f"File(s) not found: {df_file_rename['name'][~file_list_exists]}"
+            )
             raise FileNotFoundError(
                 f"File(s) not found: {df_file_rename[~file_list_exists]}"
             )
@@ -77,4 +90,5 @@ def decode_all(
         logger.error(e)
         raise e
     finally:
-        conn.close()
+        if conn is not None:
+            conn.close()
