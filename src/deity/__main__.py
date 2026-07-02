@@ -23,7 +23,9 @@ from deity.utils import rename_files
 )
 @click.option("--database-file", default="deity.db", type=click.Path(path_type=Path))
 @click.option(
-    "--table-name", default="specimens", type=click.Choice(["accession", "subjects", "specimens"])
+    "--table-name",
+    default="specimens",
+    type=click.Choice(["accession", "subjects", "specimens"]),
 )
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
 @click.option(
@@ -49,7 +51,17 @@ def main(
     dry_run: bool = False,
 ) -> None:  # sourcery skip
     """Command line interface to encode or decode files in a directory."""
-    logger.info("Dry run") if dry_run else None
+    if dry_run:
+        logger.info("Dry run")
+    else:
+        # setup
+        project_dir = Path(__file__).resolve().parents[2]
+        log_dir = project_dir.joinpath("logs")
+        logger.add(
+            log_dir.joinpath(f"{Path(__file__).stem}.log"),
+            rotation="10 MB",
+            level="INFO",
+        )
 
     # database must exist if decoding
     if decode and not database_file.exists():
@@ -65,12 +77,12 @@ def main(
     # check if files were found
     if len(file_list) == 0:
         raise FileNotFoundError(f"No {extension} files found in {input_dir}")
-    else:
-        # log input parameters
-        logger.info(
-            f"{'Decoding' if decode else 'Encoding'} {len(file_list)} "
-            f"files with ext {extension} in {input_dir}"
-        )
+
+    # log input parameters
+    logger.info(
+        f"Creating df to {'decode' if decode else 'encode'} {len(file_list)} "
+        f"files with ext {extension} in {input_dir}"
+    )
 
     # encode/decode files
     if decode:
@@ -96,7 +108,7 @@ def main(
                 df_sql, table_name, conn, output_file=database_file
             )
 
-            if len(df_file_rename) > 0:
+            if len(df_file_rename) > 0 and not dry_run:
                 rename_files(df_file_rename)
 
 
